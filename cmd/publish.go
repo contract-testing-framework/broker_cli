@@ -44,17 +44,20 @@ flags:
 			return errors.New("Two arguments are required")
 		}
 
+		/*
+		publish <path to pact> <brokerURL> sends a .json pact to broker
+		*/
 		path := args[0]
+		brokerURL := args[1]
 		
 		contract, err := os.ReadFile(path)
 		check(err)
 		bodyReader := bytes.NewReader(contract)
 
-		resp, err := http.Post("http://localhost:3000/api/contracts/", "application/json", bodyReader)
+		resp, err := http.Post(brokerURL, "application/json", bodyReader)
 		check(err)
 		defer resp.Body.Close();
 
-		// brokerURL := args[1]
 
 		return nil
 	},
