@@ -1,1 +1,1 @@
-{"project_name":"broker_cli","tag":"v0.1.0","previous_tag":"","version":"0.1.0-SNAPSHOT-d3a129d","commit":"d3a129daa7c04ec0fe42064c5b9c6a7a43ea57c3","date":"2023-06-26T14:53:30.339417-07:00","runtime":{"goos":"darwin","goarch":"arm64"}}
+{"project_name":"broker_cli","tag":"v0.1.0","previous_tag":"","version":"0.1.1-next","commit":"ab31385b7800e6aef30d2127cb90d92c6ea4340e","date":"2023-06-26T16:08:35.140601-07:00","runtime":{"goos":"darwin","goarch":"arm64"}}
