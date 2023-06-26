@@ -64,17 +64,17 @@ func ConsumerName(path string) (string, error) {
 	return contract.Consumer.Name, nil
 }
 
-func ReadAndUnmarshalContract(path string) (interface{}, interface{}, error) {
+func ReadAndUnmarshalContract(path string) (string, interface{}, error) {
 	var contract interface{}
 
 	fileExtension := path[len(path)-4:]
 	if fileExtension != "json" && fileExtension != "yaml" && fileExtension != ".yml" {
-		return nil, nil, errors.New("Contract must be either JSON or YAML")
+		return "", nil, errors.New("Contract must be either JSON or YAML")
 	}
 
 	contractBytes, err := os.ReadFile(path)
 	if err != nil {
-		return nil, nil, err
+		return "", nil, err
 	}
 
 	if fileExtension == "json" {
@@ -84,7 +84,7 @@ func ReadAndUnmarshalContract(path string) (interface{}, interface{}, error) {
 	}
 
 	if err != nil {
-		return nil, nil, err
+		return "", nil, err
 	}
 
 	return fileExtension, contract, nil
@@ -142,7 +142,10 @@ flags:
 			return errors.New("Two arguments are required")
 		}
 
-		ValidFlags()
+		err := ValidFlags()
+		if err != nil {
+			return err
+		}
 
 		path := args[0]
 		var name string
@@ -163,7 +166,7 @@ flags:
 			return errors.New("Must set --version")
 		}
 
-		contract, err := ReadAndUnmarshalContract(path)
+		format, contract, err := ReadAndUnmarshalContract(path)
 		if err != nil {
 			return err
 		}
@@ -175,30 +178,6 @@ flags:
 		}
 
 		bodyReader := bytes.NewBuffer(jsonData) // io.Reader interface type
-
-		// type Body struct{
-		// 	ContractType string `json:"contractType"`
-		// 	Contract interface{} `json:"contract"`
-		// 	ParticipantName string `json:"participantName"`
-		// 	ParticipantVersion string `json:"participantVersion"`
-		// 	ParticipantBranch string `json:"participantBranch"`
-		// 	ContractFormat string `json:"contractFormat"`
-		// }
-		// brokerURL := args[1]
-
-		// requestBody := Body{
-		// 	ContractType: Type,
-		// 	Contract: contract,
-		// 	ParticipantName: name,
-		// 	ParticipantVersion: Version,
-		// 	ParticipantBranch: Branch,
-		// 	ContractFormat: format,
-		// }
-
-		// jsonData, err := json.Marshal(requestBody)
-		// if err != nil {
-		// 	return err
-		// }
 
 		// bodyReader := bytes.NewBuffer(jsonData) // io.Reader interface type
 		brokerURL := args[1]
