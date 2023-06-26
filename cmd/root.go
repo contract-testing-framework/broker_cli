@@ -10,7 +10,7 @@ import (
 
 
 // rootCmd represents the base command when called without any subcommands
-var rootCmd = &cobra.Command{
+var RootCmd = &cobra.Command{
 	Use:   "broker_cli",
 	Short: "A command line interface for the contract broker",
 	Long: `This command line interface is used to publish contracts to the contract broker.`,
@@ -22,7 +22,7 @@ var rootCmd = &cobra.Command{
 // Execute adds all child commands to the root command and sets flags appropriately.
 // This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute() {
-	err := rootCmd.Execute()
+	err := RootCmd.Execute()
 	if err != nil {
 		fmt.Printf("Error: %v\n", err)
 		os.Exit(1)

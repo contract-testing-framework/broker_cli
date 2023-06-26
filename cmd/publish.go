@@ -13,12 +13,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var check = func(err error) {
-	if err != nil {
-		log.Fatal(err)
-	}
-}
-
 var Type string;
 var Branch string;
 var ProviderName string;
@@ -86,11 +80,15 @@ flags:
 			}
 
 			contractBytes, err := os.ReadFile(path)
-			check(err)
+			if err != nil {
+				return err
+			}
 
 			var contract pact
 			err = json.Unmarshal(contractBytes, &contract)
-			check(err)
+			if err != nil {
+				return err
+			}
 
 			name = contract.Consumer.Name
 		}
@@ -117,19 +115,27 @@ flags:
 
 			var err error
 			contractBytes, err = os.ReadFile(path)
-			check(err)
+			if err != nil {
+				return err
+			}
 
 			err = json.Unmarshal(contractBytes, &contract)
-			check(err)
+			if err != nil {
+				return err
+			}
 
 		} else if path[(len(path) - 4):] == "yaml" || path[(len(path) - 3):] == "yml" {
 			format = "yaml"
 
 			var err error
 			contractBytes, err = os.ReadFile(path)
-			check(err)
+			if err != nil {
+				return err
+			}
 			contract = string(contractBytes)
-			check(err)
+			if err != nil {
+				return err
+			}
 		} else {
 			return errors.New("Contract must be either JSON or YAML")
 		}
@@ -146,12 +152,16 @@ flags:
 		}
 
 		jsonData, err := json.Marshal(requestBody)
-		check(err)
+		if err != nil {
+			return err
+		}
 
 		bodyReader := bytes.NewBuffer(jsonData) // io.Reader interface type
 
 		resp, err := http.Post(brokerURL, "application/json", bodyReader)
-		check(err)
+		if err != nil {
+			return err
+		}
 		defer resp.Body.Close();
 
 		if resp.StatusCode != 201 {
@@ -161,7 +171,9 @@ flags:
 	
 			var respBody respError
 			err = json.NewDecoder(resp.Body).Decode(&respBody)
-			check(err)
+			if err != nil {
+				return err
+			}
 
 			if respBody.Error == "Participant version already exists" {
 				respBody.Error = respBody.Error + "\n\nA new participant version must be set whenever a contract is published."
@@ -178,12 +190,15 @@ flags:
 func init() {
 	cmd := exec.Command("git", "rev-parse", "--short=10", "HEAD")
 	gitSHA, err := cmd.Output()
-	check(err)
+	if err != nil {
+		fmt.Printf("Error: %v\n", err)
+		os.Exit(1)
+	}
 
 	// trim off trailing newline
 	gitSHA = gitSHA[:len(gitSHA) - 1]
 
-	rootCmd.AddCommand(publishCmd)
+	RootCmd.AddCommand(publishCmd)
 	publishCmd.Flags().StringVarP(&Type, "type", "t", "", "Type of contract (\"consumer\" or \"provider\")")
 	publishCmd.Flags().StringVarP(&Branch, "branch", "b", "", "Version control branch (optional)")
 	publishCmd.Flags().StringVarP(&ProviderName, "provider-name", "n", "", "The name of the provider service (required if --type is \"provider\")")
