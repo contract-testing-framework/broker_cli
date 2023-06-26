@@ -19,15 +19,6 @@ func (ao actualOut) startsWith(expected string, t *testing.T) {
 	}
 }
 
-// type Body struct{
-// 	ContractType string `json:"contractType"`
-// 	Contract interface{} `json:"contract"`
-// 	ParticipantName string `json:"participantName"`
-// 	ParticipantVersion string `json:"participantVersion"`
-// 	ParticipantBranch string `json:"participantBranch"`
-// 	ContractFormat string `json:"contractFormat"`
-// }
-
 // setup and execute command
 func callPublish(argsAndFlags []string) actualOut {
 	actual := new(bytes.Buffer)
