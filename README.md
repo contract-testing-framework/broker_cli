@@ -1,6 +1,6 @@
 A command line interface for the contract testing broker.
 
-# cloning the repo
+# Cloning the repo
 
 In your local go environemnt:
 - create a directory structure like this:
@@ -8,6 +8,10 @@ In your local go environemnt:
 - `cd` into `contract-testing-framework`
 - `git clone` the repo
 - `cd` into `broker_cli`
+
+# Building a new version of the binary executable
+
+goreleaser --snapshot
 
 # Documentation
 
