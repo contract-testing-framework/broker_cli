@@ -32,16 +32,13 @@ publish [path to contract] [broker url]
 
 flags:
 
--t —type         	enum('consumer', 'provider')
+-t -—type         	enum('consumer', 'provider')
 
--v —version      	service version
+-v -—version      	service version
 
--b —branch       	git branch name
+-b -—branch       	git branch name
 
--n —provider-name (only for —type 'provider') name of provider service
-
--c —content-type 	(only for —type 'provider') OAS file type (json or yaml)
-
+-n -—provider-name (only for —type 'provider') name of provider service
 `,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if len(args) < 2 {
