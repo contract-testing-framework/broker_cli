@@ -34,7 +34,7 @@ type Body struct {
 }
 
 type httpError struct {
-	Error string `json:error`
+	Error string `json:"error"`
 }
 
 var Type string
@@ -116,11 +116,12 @@ func init() {
 	cmd := exec.Command("git", "rev-parse", "--short=10", "HEAD")
 	gitSHA, err := cmd.Output()
 	if err != nil {
-		fmt.Printf("Error: %v\n", err)
-		os.Exit(1)
+		fmt.Printf("Warning: Because this directory is not a git repository, --version cannot default to git commit SHA. --version must be set in order to publish a consumer contract.\n\n")
 	}
 	// trim off trailing newline
-	gitSHA = gitSHA[:len(gitSHA)-1]
+	if len(gitSHA) != 0 {
+		gitSHA = gitSHA[:len(gitSHA)-1]
+	}
 
 	RootCmd.AddCommand(publishCmd)
 	publishCmd.Flags().StringVarP(&Type, "type", "t", "", "Type of contract (\"consumer\" or \"provider\")")
