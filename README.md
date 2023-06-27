@@ -9,9 +9,28 @@ In your local go environemnt:
 - `git clone` the repo
 - `cd` into `broker_cli`
 
-# Documentation
 
-## Publishing a Contract (in development)
+# Docs
+
+### broker_cli publish
+- The `publish` command pushes a local contract to the contract broker. This automatically triggers contract verification if the broker
+already has a contract for the other microservice in the integration.
+
+args:
+
+`publish [path to contract file] [broker-url]`
+
+flags:
+
+-t -—type           enum(’consumer’, ‘provider’)
+
+-v -—version        (optional, defaults to SHA of git commit)
+
+-b -—branch         (optional)
+
+-n -—provider-name  (only for -—type ‘provider’)
+
+# Publishing a Contract (in development)
 
 `go run main.go publish --help` lists required arguments and flags
 

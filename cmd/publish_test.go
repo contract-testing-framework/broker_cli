@@ -3,7 +3,6 @@ package cmd
 import (
 	"bytes"
 	"encoding/json"
-	// "fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -18,15 +17,6 @@ func (ao actualOut) startsWith(expected string, t *testing.T) {
 	if ao.actual[:len(expected)] != expected {
 		t.Error()
 	}
-}
-
-type Body struct{
-	ContractType string `json:"contractType"`
-	Contract interface{} `json:"contract"`
-	ParticipantName string `json:"participantName"`
-	ParticipantVersion string `json:"participantVersion"`
-	ParticipantBranch string `json:"participantBranch"`
-	ContractFormat string `json:"contractFormat"`
 }
 
 // setup and execute command
