@@ -56,13 +56,13 @@ publish [path to contract] [broker url]
 
 flags:
 
--t -—type         	enum('consumer', 'provider')
+-t -—type         	the type of service contract (either 'consumer' or 'provider')
 
--v -—version      	service version
+-b -—branch       	git branch name (optional)
 
--b -—branch       	git branch name
+-v -—version      	version of service (only for --type 'consumer', defaults to SHA of git commit)
 
--n -—provider-name (only for —type 'provider') name of provider service
+-n -—provider-name 	identifier key for provider service (only for —-type 'provider')
 `,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if len(args) < 2 {
@@ -88,6 +88,10 @@ flags:
 		var name string
 		if Type == "provider" {
 			name = ProviderName
+
+			if len(Version) != 0 {
+				Version = ""
+			}
 		} else {
 			name, err = ConsumerName(path)
 			if err != nil {
