@@ -22,13 +22,14 @@ args:
 
 flags:
 
--t -—type           enum(’consumer’, ‘provider’)
+-t -—type         	the type of service contract (either 'consumer' or 'provider')
 
--v -—version        (optional, defaults to SHA of git commit)
+-b -—branch       	git branch name (optional)
 
--b -—branch         (optional)
+-v -—version      	version of service (only for --type 'consumer', defaults to SHA of git commit)
 
--n -—provider-name  (only for -—type ‘provider’)
+-n -—provider-name 	identifier key for provider service (only for —-type 'provider')
+
 
 # Publishing a Contract (in development)
 
