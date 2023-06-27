@@ -62,7 +62,7 @@ func TestPublishContractDoesNotExist(t *testing.T) {
 	actual.startsWith(expected, t)
 }
 
-func TestPublishConsumerContract(t *testing.T) {
+func mockServerForJSONReq(t *testing.T) (string, Body) {
 	var reqBody Body
 
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -80,7 +80,13 @@ func TestPublishConsumerContract(t *testing.T) {
 	}))
 	defer server.Close()
 
-	args := []string{"../data_test/cons-prov.json", server.URL}
+	return server.URL, reqBody
+}
+// BOOKMARK: factored out mockServer fuction, but all tests in below function now fail... by return a pointer to reqBody?
+func TestPublishConsumerContract(t *testing.T) {
+	brokerURL, reqBody := mockServerForJSONReq(t)
+
+	args := []string{"../data_test/cons-prov.json", brokerURL}
 	flags := []string{"--type", "consumer", "--branch", "main"}
 	actual := callPublish(append(args, flags...))
 
