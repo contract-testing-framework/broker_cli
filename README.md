@@ -37,3 +37,10 @@ flags:
 
 Publish an example provider specification (yaml):
 `go run main.go publish ./data_test/api-spec.yaml http://localhost:3000/api/contracts --type provider --provider-name example-provider`
+
+# Publishing a Contract (using broker_cli binary)
+
+`broker_cli publish ./data_test/api-spec.yaml http://localhost:3000/api/contracts --type provider --provider-name example-provider`
+
+# Release updated binaries
+
