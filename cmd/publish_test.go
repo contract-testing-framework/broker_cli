@@ -21,8 +21,12 @@ func (ao actualOut) startsWith(expected string, t *testing.T) {
 	}
 }
 
-// returns a mock server and a pointer to a struct which 
-// will be populated with the request body when a request is made
+/*
+	returns a mock server and a pointer to a struct which 
+	will be populated with the request body when a request is made.
+	used for any requests with a JSON request body, even when contract
+	is YAML format
+*/
 func mockServerForJSONReq(t *testing.T) (*httptest.Server, *Body) {
 	var reqBody Body
 
@@ -97,9 +101,11 @@ func TestPublishConsumerContract(t *testing.T) {
 	flags := []string{"--type", "consumer", "--branch", "main"}
 	actual := callPublish(append(args, flags...))
 
-	if actual.actual != "" {
-		t.Error()
-	}
+	t.Run("prints nothing to stdout", func(t *testing.T) {
+		if actual.actual != "" {
+			t.Error()
+		}
+	})
 
 	t.Run("has correct contractType", func(t *testing.T) {
 		if reqBody.ContractType != "consumer" {
@@ -146,9 +152,11 @@ func TestPublishProviderJSONSpec(t *testing.T) {
 	flags := []string{"--type", "provider", "--provider-name", "user_service", "--branch", "main"}
 	actual := callPublish(append(args, flags...))
 
-	if actual.actual != "" {
-		t.Error()
-	}
+	t.Run("prints nothing to stdout", func(t *testing.T) {
+		if actual.actual != "" {
+			t.Error()
+		}
+	})
 
 	t.Run("has correct contractType", func(t *testing.T) {
 		if reqBody.ContractType != "provider" {
@@ -195,9 +203,11 @@ func TestPublishProviderYAMLSpec(t *testing.T) {
 	flags := []string{"--type", "provider", "--provider-name", "user_service", "--branch", "main"}
 	actual := callPublish(append(args, flags...))
 
-	if actual.actual != "" {
-		t.Error()
-	}
+	t.Run("prints nothing to stdout", func(t *testing.T) {
+		if actual.actual != "" {
+			t.Error()
+		}
+	})
 
 	t.Run("has correct contractType", func(t *testing.T) {
 		if reqBody.ContractType != "provider" {
@@ -235,11 +245,3 @@ func TestPublishProviderYAMLSpec(t *testing.T) {
 		}
 	})
 }
-
-
-// Add tests for .yaml provider contracts
-
-
-
-
-
