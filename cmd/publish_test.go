@@ -6,9 +6,12 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"fmt"
 )
 
-// helpers
+
+/* ------------- helpers ------------- */
+
 type actualOut struct{
 	actual string
 }
@@ -19,7 +22,29 @@ func (ao actualOut) startsWith(expected string, t *testing.T) {
 	}
 }
 
-// setup and execute command
+// returns a mock server and a pointer to a struct which 
+// will be populated with the request body when a request is made
+func mockServerForJSONReq(t *testing.T) (*httptest.Server, *Body) {
+	var reqBody Body
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Header.Get("Content-Type") != "application/json" {
+				t.Errorf("Expected Content-Type: application/json header, got: %s", r.Header.Get("Content-Type"))
+		}
+
+		decoder := json.NewDecoder(r.Body)
+		err := decoder.Decode(&reqBody)
+		if err != nil {
+			t.Error("Failed to parse request body")
+		}
+
+		w.WriteHeader(http.StatusCreated)
+	}))
+
+	return server, &reqBody
+}
+
+// setup and execute publish command
 func callPublish(argsAndFlags []string) actualOut {
 	actual := new(bytes.Buffer)
 	RootCmd.SetOut(actual)
@@ -28,6 +53,9 @@ func callPublish(argsAndFlags []string) actualOut {
 	RootCmd.Execute()
 	return actualOut{actual.String()}
 }
+
+
+/* ------------- tests ------------- */
 
 func TestPublishNoArgs(t *testing.T) {
 	actual := callPublish([]string{})
@@ -62,31 +90,11 @@ func TestPublishContractDoesNotExist(t *testing.T) {
 	actual.startsWith(expected, t)
 }
 
-func mockServerForJSONReq(t *testing.T) (string, Body) {
-	var reqBody Body
-
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.Header.Get("Content-Type") != "application/json" {
-				t.Errorf("Expected Content-Type: application/json header, got: %s", r.Header.Get("Content-Type"))
-		}
-
-		decoder := json.NewDecoder(r.Body)
-		err := decoder.Decode(&reqBody)
-		if err != nil {
-			t.Error("Failed to parse request body")
-		}
-
-		w.WriteHeader(http.StatusCreated)
-	}))
+func TestPublishConsumerContract(t *testing.T) {
+	server, reqBody := mockServerForJSONReq(t)
 	defer server.Close()
 
-	return server.URL, reqBody
-}
-// BOOKMARK: factored out mockServer fuction, but all tests in below function now fail... by return a pointer to reqBody?
-func TestPublishConsumerContract(t *testing.T) {
-	brokerURL, reqBody := mockServerForJSONReq(t)
-
-	args := []string{"../data_test/cons-prov.json", brokerURL}
+	args := []string{"../data_test/cons-prov.json", server.URL}
 	flags := []string{"--type", "consumer", "--branch", "main"}
 	actual := callPublish(append(args, flags...))
 
@@ -131,8 +139,58 @@ func TestPublishConsumerContract(t *testing.T) {
 	})
 }
 
+func TestPublishProviderJSONSpec(t *testing.T) {
+	server, reqBody := mockServerForJSONReq(t)
+	defer server.Close()
+
+	args := []string{"../data_test/api-spec.json", server.URL}
+	flags := []string{"--type", "provider", "--provider-name", "user_service", "--branch", "main"}
+	actual := callPublish(append(args, flags...))
+
+	if actual.actual != "" {
+		t.Error()
+	}
+
+	t.Run("has correct contractType", func(t *testing.T) {
+		if reqBody.ContractType != "provider" {
+			t.Error()
+		}
+	})
+
+	t.Run("has correct participantName", func(t *testing.T) {
+		if reqBody.ParticipantName != "user_service" {
+			t.Error()
+		}
+	})
+
+	fmt.Println(reqBody.ParticipantVersion)
+
+	t.Run("does not have participantVersion", func(t *testing.T) {
+		if len(reqBody.ParticipantVersion) != 0 {
+			t.Error()
+		}
+	})
+
+	t.Run("has correct participantBranch", func(t *testing.T) {
+		if reqBody.ParticipantBranch != "main" {
+			t.Error()
+		}
+	})
+
+	t.Run("has correct contractFormat", func(t *testing.T) {
+		if reqBody.ContractFormat != "json" {
+			t.Error()
+		}
+	})
+
+	t.Run("has non-null contract", func(t *testing.T) {
+		if reqBody.Contract == nil {
+			t.Error()
+		}
+	})
+}
+
 // Add tests for .yaml provider contracts
-// maybe? add tests for the content of a contract
 
 
 

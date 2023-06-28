@@ -12,7 +12,7 @@ func TestCLIBaseCommand(t *testing.T) {
 	RootCmd.SetArgs([]string{})
 	RootCmd.Execute()
 
-	expected := "This command line interface is used to publish contracts"
+	expected := "A command line interface for the contract broker"
 	actualOutput := actual.String()
 
 	if actualOutput[:len(expected)] != expected {
