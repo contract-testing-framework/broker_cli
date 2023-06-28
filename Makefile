@@ -1,5 +1,4 @@
 BINARY_NAME=broker_cli
-VERSION=0.1.2
 
 build:
 	GOARCH=arm64 GOOS=darwin go build -o ./bin/${BINARY_NAME}-darwin-arm64 main.go

@@ -44,3 +44,22 @@ Publish an example provider specification (yaml):
 
 # Release updated binaries
 
+- build new binaries with `make build`
+- create a new semantic version tag before commiting: `git tag v0.1.4`
+- commit changes
+- push changes to github
+- manually upload the binaries through the github releases page:
+  - from the main `Code` tab, click on `Releases` in the right-hand sidebar
+  - click `Draft a new release`
+  - add the semantic version tag for the commit
+  - upload binaries
+  - click `set as latest release`
+  - click `Publish release`
+
+# Install binary executables
+
+- go to the `Releases` page in the repo
+- right click on the binary for your OS/Arch and copy the link address
+- in the directory where you want to keep the binary, run `curl -sLO` followed by the link address.
+  - ex. `curl -sLO https://github.com/contract-testing-framework/broker_cli/releases/download/v0.1.4/broker_cli-darwin-arm64`
+- give the binary executable permissions: `chmod +x BINARY_FILE_NAME`
