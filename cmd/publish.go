@@ -143,7 +143,7 @@ func ValidFlags() error {
 		return errors.New("Must set --provider-name if --type is \"provider\"")
 	}
 
-	if len(Version) == 0 {
+	if Type == "consumer" && len(Version) == 0 {
 		return errors.New("Must set --version")
 	}
 

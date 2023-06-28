@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
-	"fmt"
 )
 
 
@@ -163,8 +162,6 @@ func TestPublishProviderJSONSpec(t *testing.T) {
 		}
 	})
 
-	fmt.Println(reqBody.ParticipantVersion)
-
 	t.Run("does not have participantVersion", func(t *testing.T) {
 		if len(reqBody.ParticipantVersion) != 0 {
 			t.Error()
@@ -189,6 +186,56 @@ func TestPublishProviderJSONSpec(t *testing.T) {
 		}
 	})
 }
+
+func TestPublishProviderYAMLSpec(t *testing.T) {
+	server, reqBody := mockServerForJSONReq(t)
+	defer server.Close()
+
+	args := []string{"../data_test/api-spec.yaml", server.URL}
+	flags := []string{"--type", "provider", "--provider-name", "user_service", "--branch", "main"}
+	actual := callPublish(append(args, flags...))
+
+	if actual.actual != "" {
+		t.Error()
+	}
+
+	t.Run("has correct contractType", func(t *testing.T) {
+		if reqBody.ContractType != "provider" {
+			t.Error()
+		}
+	})
+
+	t.Run("has correct participantName", func(t *testing.T) {
+		if reqBody.ParticipantName != "user_service" {
+			t.Error()
+		}
+	})
+
+	t.Run("does not have participantVersion", func(t *testing.T) {
+		if len(reqBody.ParticipantVersion) != 0 {
+			t.Error()
+		}
+	})
+
+	t.Run("has correct participantBranch", func(t *testing.T) {
+		if reqBody.ParticipantBranch != "main" {
+			t.Error()
+		}
+	})
+
+	t.Run("has correct contractFormat", func(t *testing.T) {
+		if reqBody.ContractFormat != "yaml" {
+			t.Error()
+		}
+	})
+
+	t.Run("has non-null contract", func(t *testing.T) {
+		if reqBody.Contract == nil {
+			t.Error()
+		}
+	})
+}
+
 
 // Add tests for .yaml provider contracts
 
