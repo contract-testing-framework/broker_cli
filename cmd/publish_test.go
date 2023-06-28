@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
-	"fmt"
 )
 
 
@@ -22,8 +21,12 @@ func (ao actualOut) startsWith(expected string, t *testing.T) {
 	}
 }
 
-// returns a mock server and a pointer to a struct which 
-// will be populated with the request body when a request is made
+/*
+	returns a mock server and a pointer to a struct which 
+	will be populated with the request body when a request is made.
+	used for any requests with a JSON request body, even when contract
+	is YAML format
+*/
 func mockServerForJSONReq(t *testing.T) (*httptest.Server, *Body) {
 	var reqBody Body
 
@@ -98,9 +101,11 @@ func TestPublishConsumerContract(t *testing.T) {
 	flags := []string{"--type", "consumer", "--branch", "main"}
 	actual := callPublish(append(args, flags...))
 
-	if actual.actual != "" {
-		t.Error()
-	}
+	t.Run("prints nothing to stdout", func(t *testing.T) {
+		if actual.actual != "" {
+			t.Error()
+		}
+	})
 
 	t.Run("has correct contractType", func(t *testing.T) {
 		if reqBody.ContractType != "consumer" {
@@ -147,9 +152,11 @@ func TestPublishProviderJSONSpec(t *testing.T) {
 	flags := []string{"--type", "provider", "--provider-name", "user_service", "--branch", "main"}
 	actual := callPublish(append(args, flags...))
 
-	if actual.actual != "" {
-		t.Error()
-	}
+	t.Run("prints nothing to stdout", func(t *testing.T) {
+		if actual.actual != "" {
+			t.Error()
+		}
+	})
 
 	t.Run("has correct contractType", func(t *testing.T) {
 		if reqBody.ContractType != "provider" {
@@ -162,8 +169,6 @@ func TestPublishProviderJSONSpec(t *testing.T) {
 			t.Error()
 		}
 	})
-
-	fmt.Println(reqBody.ParticipantVersion)
 
 	t.Run("does not have participantVersion", func(t *testing.T) {
 		if len(reqBody.ParticipantVersion) != 0 {
@@ -190,9 +195,53 @@ func TestPublishProviderJSONSpec(t *testing.T) {
 	})
 }
 
-// Add tests for .yaml provider contracts
+func TestPublishProviderYAMLSpec(t *testing.T) {
+	server, reqBody := mockServerForJSONReq(t)
+	defer server.Close()
 
+	args := []string{"../data_test/api-spec.yaml", server.URL}
+	flags := []string{"--type", "provider", "--provider-name", "user_service", "--branch", "main"}
+	actual := callPublish(append(args, flags...))
 
+	t.Run("prints nothing to stdout", func(t *testing.T) {
+		if actual.actual != "" {
+			t.Error()
+		}
+	})
 
+	t.Run("has correct contractType", func(t *testing.T) {
+		if reqBody.ContractType != "provider" {
+			t.Error()
+		}
+	})
 
+	t.Run("has correct participantName", func(t *testing.T) {
+		if reqBody.ParticipantName != "user_service" {
+			t.Error()
+		}
+	})
 
+	t.Run("does not have participantVersion", func(t *testing.T) {
+		if len(reqBody.ParticipantVersion) != 0 {
+			t.Error()
+		}
+	})
+
+	t.Run("has correct participantBranch", func(t *testing.T) {
+		if reqBody.ParticipantBranch != "main" {
+			t.Error()
+		}
+	})
+
+	t.Run("has correct contractFormat", func(t *testing.T) {
+		if reqBody.ContractFormat != "yaml" {
+			t.Error()
+		}
+	})
+
+	t.Run("has non-null contract", func(t *testing.T) {
+		if reqBody.Contract == nil {
+			t.Error()
+		}
+	})
+}
