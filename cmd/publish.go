@@ -24,13 +24,19 @@ type pact struct {
 	Provider     interface{} `json:"provider"`
 }
 
-type Body struct {
-	ContractType       string      `json:"contractType"`
-	Contract           interface{} `json:"contract"`
-	ParticipantName    string      `json:"participantName"`
-	ParticipantVersion string      `json:"participantVersion"`
-	ParticipantBranch  string      `json:"participantBranch"`
-	ContractFormat     string      `json:"contractFormat"`
+type ConsumerBody struct {
+	Contract        pact   `json:"contract"`
+	ConsumerName    string `json:"consumerName"`
+	ConsumerVersion string `json:"consumerVersion"`
+	ConsumerBranch  string `json:"consumerBranch"`
+}
+
+type ProviderBody struct {
+	Spec            interface{} `json:"spec"`
+	ProviderName    string      `json:"providerName"`
+	ProviderVersion string      `json:"providerVersion"`
+	ProviderBranch  string      `json:"providerBranch"`
+	SpecFormat      string      `json:"specFormat"`
 }
 
 type httpError struct {
@@ -66,71 +72,80 @@ flags:
 `,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if len(args) < 2 {
-			return errors.New("Two arguments are required")
+			return errors.New("two arguments are required")
 		}
 		path := args[0]
-		brokerURL := args[1]
+		brokerBaseUrl := args[1]
 
-		err := ValidFlags()
+		err := ValidType()
 		if err != nil {
 			return err
 		}
 
-		format, contract, err := ReadAndUnmarshalContract(path)
-		if err != nil {
-			return err
-		}
-
-		if Type == "consumer" && format != "json" {
-			return errors.New("Consumer contracts must be JSON documents")
-		}
-		
-		var name string
-		if Type == "provider" {
-			name = ProviderName
-
-			if len(Version) != 0 {
-				Version = ""
+		if Type == "consumer" {
+			if Version == "" || Version == "auto" {
+				setVersionToGitSha()
 			}
+
+			contract, err := loadContract(path)
+			if err != nil {
+				return err
+			}
+
+			consumerName := contract.Consumer.Name
+
+			if len(consumerName) == 0 {
+				return errors.New("consumer contract does not have a consumer name")
+			}
+
+			requestBody, err := createConsumerRequestBody(contract, consumerName, Version, Branch)
+			if err != nil {
+				return err
+			}
+
+			err = publishContract(brokerBaseUrl+"/api/contracts", requestBody)
+			if err != nil {
+				return err
+			}
+			// Else it is a provider
 		} else {
-			name, err = ConsumerName(path)
+			if len(ProviderName) == 0 {
+				return errors.New("must set --provider-name if --type is \"provider\"")
+			}
+
+			if Version == "auto" {
+				setVersionToGitSha()
+			}
+
+			spec, specFormat, err := loadSpec(path)
+			if err != nil {
+				return err
+			}
+
+			requestBody, err := createProviderRequestBody(spec, ProviderName, Version, Branch, specFormat)
+			if err != nil {
+				return err
+			}
+			err = publishContract(brokerBaseUrl+"/api/specs", requestBody)
 			if err != nil {
 				return err
 			}
 		}
 
-		jsonBody, err := CreateRequestBody(Type, contract, name, Version, Branch, format)
-		if err != nil {
-			return err
-		}
-
-		err = publishContract(brokerURL, jsonBody)
-		if err != nil {
-			return err
-		}
 		return nil
 	},
 }
 
 func init() {
-	cmd := exec.Command("git", "rev-parse", "--short=10", "HEAD")
-	gitSHA, err := cmd.Output()
-	if err != nil {
-		fmt.Printf("Warning: Because this directory is not a git repository, --version cannot default to git commit SHA. --version must be set in order to publish a consumer contract.\n\n")
-	}
-	// trim off trailing newline
-	if len(gitSHA) != 0 {
-		gitSHA = gitSHA[:len(gitSHA)-1]
-	}
-
 	RootCmd.AddCommand(publishCmd)
 	publishCmd.Flags().StringVarP(&Type, "type", "t", "", "Type of contract (\"consumer\" or \"provider\")")
 	publishCmd.Flags().StringVarP(&Branch, "branch", "b", "", "Version control branch (optional)")
 	publishCmd.Flags().StringVarP(&ProviderName, "provider-name", "n", "", "The name of the provider service (required if --type is \"provider\")")
-	publishCmd.Flags().StringVarP(&Version, "version", "v", string(gitSHA), "The version of the service (Defaults to git SHA)")
+	publishCmd.Flags().StringVarP(&Version, "version", "v", "", "The version of the service (Defaults to git SHA)")
+	publishCmd.Flags().Lookup("version").NoOptDefVal = "auto"
 }
 
-func ValidFlags() error {
+func ValidType() error {
 	if Type != "consumer" && Type != "provider" {
 		if len(Type) == 0 {
 			Type = "not set"
@@ -138,73 +153,74 @@ func ValidFlags() error {
 		msg := fmt.Sprintf("--type required to be \"consumer\" or \"provider\", --type was %v", Type)
 		return errors.New(msg)
 	}
-
-	if Type == "provider" && len(ProviderName) == 0 {
-		return errors.New("Must set --provider-name if --type is \"provider\"")
-	}
-
-	if Type == "consumer" && len(Version) == 0 {
-		return errors.New("Must set --version")
-	}
-
 	return nil
 }
 
-func ReadAndUnmarshalContract(path string) (string, interface{}, error) {
-	var contract interface{}
+func loadContract(path string) (contract pact, err error) {
+	contractBytes, err := os.ReadFile(path)
+	if err != nil {
+		return pact{}, err
+	}
 
-	format := path[len(path)-4:]
+	err = json.Unmarshal(contractBytes, &contract)
+	if err != nil {
+		return pact{}, err
+	}
+	return
+}
+
+func loadSpec(path string) (spec interface{}, format string, err error) {
+	format = path[len(path)-4:]
 	if format != "json" && format != "yaml" && format != ".yml" {
-		return "", nil, errors.New("Contract must be either JSON or YAML")
+		return nil, "", errors.New("spec must be either JSON or YAML")
 	}
 
 	if format == ".yml" {
 		format = "yaml"
 	}
 
-	contractBytes, err := os.ReadFile(path)
+	specBytes, err := os.ReadFile(path)
 	if err != nil {
-		return "", nil, err
+		return nil, "", err
 	}
 
 	if format == "json" {
-		err = json.Unmarshal(contractBytes, &contract)
+		err = json.Unmarshal(specBytes, &spec)
 	} else {
-		contract = string(contractBytes)
+		spec = string(specBytes)
 	}
 
 	if err != nil {
-		return "", nil, err
+		return nil, "", err
 	}
 
-	return format, contract, nil
+	return
 }
 
-func ConsumerName(path string) (string, error) {
-	contractBytes, err := os.ReadFile(path)
+func createConsumerRequestBody(contract pact, consumerName string, consumerVersion string, consumerBranch string) ([]byte, error) {
 
-	if err != nil {
-		return "", err
+	requestBody := ConsumerBody{
+		Contract:        contract,
+		ConsumerName:    consumerName,
+		ConsumerVersion: consumerVersion,
+		ConsumerBranch:  consumerBranch,
 	}
 
-	var contract pact
-	err = json.Unmarshal(contractBytes, &contract)
-
+	jsonData, err := json.Marshal(requestBody)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	return contract.Consumer.Name, nil
+	return jsonData, nil
 }
 
-func CreateRequestBody(contractType string, contract interface{}, participantName string, participantVersion string, participantBranch string, contractFormat string) ([]byte, error) {
-	requestBody := Body{
-		ContractType:       contractType,
-		Contract:           contract,
-		ParticipantName:    participantName,
-		ParticipantVersion: participantVersion,
-		ParticipantBranch:  participantBranch,
-		ContractFormat:     contractFormat,
+func createProviderRequestBody(spec interface{}, providerName string, providerVersion string, providerBranch string, specFormat string) ([]byte, error) {
+	requestBody := ProviderBody{
+		Spec:            spec,
+		ProviderName:    providerName,
+		ProviderVersion: providerVersion,
+		ProviderBranch:  providerBranch,
+		SpecFormat:      specFormat,
 	}
 
 	jsonData, err := json.Marshal(requestBody)
@@ -230,11 +246,25 @@ func publishContract(brokerURL string, jsonData []byte) error {
 		}
 
 		if respBody.Error == "Participant version already exists" {
-			respBody.Error = respBody.Error + "\n\nA new participant version must be set whenever a contract is published."
+			respBody.Error = respBody.Error + "\n\nA new consumer version must be set whenever a contract is published."
 		}
 
 		fmt.Printf("Status code: %v\n", resp.Status)
 		log.Fatal(respBody.Error)
 	}
+	return nil
+}
+
+func setVersionToGitSha() error {
+	cmd := exec.Command("git", "rev-parse", "--short=10", "HEAD")
+	gitSHA, err := cmd.Output()
+	if err != nil {
+		return errors.New("because this directory is not a git repository, --version cannot default to git commit SHA. --version must be set in order to publish a consumer contract")
+	}
+	if len(gitSHA) != 0 {
+		gitSHA = gitSHA[:len(gitSHA)-1]
+	}
+
+	Version = string(gitSHA)
 	return nil
 }
