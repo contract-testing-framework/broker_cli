@@ -1,51 +1,62 @@
-A command line interface for the contract testing broker.
+# README.md
 
-# cloning the repo
+`broker_cli`, command line interface for the contract testing broker.
 
-In your local go environemnt:
-- create a directory structure like this:
+## Cloning the repo
+
+In your local *go* environment:
+
+- Create a directory structure like this:
   `$GOPATH/src/github.com/contract-testing-framework`
 - `cd` into `contract-testing-framework`
 - `git clone` the repo
 - `cd` into `broker_cli`
 
-
-# Docs
+## Docs
 
 ### broker_cli publish
-- The `publish` command pushes a local contract to the contract broker. This automatically triggers contract verification if the broker
-already has a contract for the other microservice in the integration.
 
-args:
+- The `publish` command pushes a local contract or spec to the broker. This automatically triggers contract/spec comparison if the broker already has a contract for the other participant in the integration.
 
-`publish [path to contract file] [broker-url]`
+```bash
+arguments:
+
+  publish [path to contract/spec] [broker url]
+
 
 flags:
 
--t -—type         	the type of service contract (either 'consumer' or 'provider')
+-t -—type           the type of service contract (either 'consumer' or 'provider')
 
--b -—branch       	git branch name (optional)
+-n -—provider-name  canonical name of the provider service (only for —-type 'provider')
 
--v -—version      	version of service (only for --type 'consumer', defaults to SHA of git commit)
+-v -—version        service version (required for --type 'consumer')
+                    -—type=consumer: if flag not passed or passed without value, defaults to the git SHA of HEAD
+                    -—type=provider: if the flag passed without value, defaults to git SHA
 
--n -—provider-name 	identifier key for provider service (only for —-type 'provider')
+-b -—branch         git branch name (optional, defaults to current git branch)
+```
 
-
-# Publishing a Contract (in development)
+### Publishing a Contract (in development)
 
 `go run main.go publish --help` lists required arguments and flags
 
-Publish an example provider specification (yaml):
-`go run main.go publish ./data_test/api-spec.yaml http://localhost:3000/api/contracts --type provider --provider-name example-provider`
+#### Publishing a Consumer Contract
 
-# Publishing a Contract (using broker_cli binary)
+```bash
+broker_cli publish ./data_test/api-spec.yaml http://localhost:3000/api/contracts --type provider --provider-name example-provider
+```
 
-`broker_cli publish ./data_test/api-spec.yaml http://localhost:3000/api/contracts --type provider --provider-name example-provider`
+#### Publish a Provider Specification (yaml)
 
-# Release updated binaries
+```bash
+go run main.go publish ./data_test/api-spec.yaml http://localhost:3000/api/contracts --type provider --provider-name example-provider
+```
+
+## Release updated binaries
 
 - build new binaries with `make build`
-- create a new semantic version tag before commiting: `git tag v0.1.4`
+- create a new semantic version tag before committing: `git tag v0.1.4`
 - commit changes
 - push changes to github
 - manually upload the binaries through the github releases page:
@@ -56,10 +67,15 @@ Publish an example provider specification (yaml):
   - click `set as latest release`
   - click `Publish release`
 
-# Install binary executables
+## Install binary executables
 
 - go to the `Releases` page in the repo
 - right click on the binary for your OS/Arch and copy the link address
 - in the directory where you want to keep the binary, run `curl -sLO` followed by the link address.
-  - ex. `curl -sLO https://github.com/contract-testing-framework/broker_cli/releases/download/v0.1.4/broker_cli-darwin-arm64`
+  - ex.
+
+  ```bash
+  curl -sLO https://github.com/contract-testing-framework/broker_cli/releases/download/v0.1.4/broker_cli-darwin-arm64
+  ```
+
 - give the binary executable permissions: `chmod +x BINARY_FILE_NAME`

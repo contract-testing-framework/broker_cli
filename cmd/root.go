@@ -1,17 +1,17 @@
 package cmd
 
 import (
-		"fmt"
-    "os"
-    "github.com/spf13/cobra"
-    // "github.com/spf13/viper"
+	"fmt"
+	"os"
+
+	"github.com/spf13/cobra"
 )
 
 // rootCmd represents the base command when called without any subcommands
 var RootCmd = &cobra.Command{
 	Use:   "broker_cli",
 	Short: "A command line interface for the contract broker",
-	Long: `A command line interface for the contract broker`,
+	Long:  `A command line interface for the contract broker`,
 }
 
 func Execute() {

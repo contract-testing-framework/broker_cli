@@ -52,23 +52,25 @@ var Contract []byte
 
 var publishCmd = &cobra.Command{
 	Use:   "publish",
-	Short: "Publish a contract to the broker",
-	Long: `Publish a pact contract to the broker.
+	Short: "Publish a contract or spec to the broker",
+	Long: `Publish a consumer contract or provider spec to the broker.
 
-args:
+arguments:
 
-publish [path to contract] [broker url]
+  publish [path to contract/spec] [broker url]
 
 
 flags:
 
 -t -—type         	the type of service contract (either 'consumer' or 'provider')
 
--b -—branch       	git branch name (optional)
+-n -—provider-name 	canonical name of the provider service (only for —-type 'provider')
 
--v -—version      	version of service (only for --type 'consumer', defaults to SHA of git commit)
+-v -—version      	service version (required for --type 'consumer')
+                  	-—type=consumer: if flag not passed or passed without value, defaults to the git SHA of HEAD
+                  	-—type=provider: if the flag passed without value, defaults to git SHA
 
--n -—provider-name 	identifier key for provider service (only for —-type 'provider')
+-b -—branch       	git branch name (optional, defaults to current git branch)
 `,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if len(args) < 2 {
@@ -83,50 +85,12 @@ flags:
 		}
 
 		if Type == "consumer" {
-			if Version == "" || Version == "auto" {
-				setVersionToGitSha()
-			}
-
-			contract, err := loadContract(path)
+			err = publishConsumer(path, brokerBaseUrl)
 			if err != nil {
 				return err
 			}
-
-			consumerName := contract.Consumer.Name
-
-			if len(consumerName) == 0 {
-				return errors.New("consumer contract does not have a consumer name")
-			}
-
-			requestBody, err := createConsumerRequestBody(contract, consumerName, Version, Branch)
-			if err != nil {
-				return err
-			}
-
-			err = publishContract(brokerBaseUrl+"/api/contracts", requestBody)
-			if err != nil {
-				return err
-			}
-			// Else it is a provider
 		} else {
-			if len(ProviderName) == 0 {
-				return errors.New("must set --provider-name if --type is \"provider\"")
-			}
-
-			if Version == "auto" {
-				setVersionToGitSha()
-			}
-
-			spec, specFormat, err := loadSpec(path)
-			if err != nil {
-				return err
-			}
-
-			requestBody, err := createProviderRequestBody(spec, ProviderName, Version, Branch, specFormat)
-			if err != nil {
-				return err
-			}
-			err = publishContract(brokerBaseUrl+"/api/specs", requestBody)
+			err = publishProvider(path, brokerBaseUrl)
 			if err != nil {
 				return err
 			}
@@ -138,11 +102,12 @@ flags:
 
 func init() {
 	RootCmd.AddCommand(publishCmd)
-	publishCmd.Flags().StringVarP(&Type, "type", "t", "", "Type of contract (\"consumer\" or \"provider\")")
+	publishCmd.Flags().StringVarP(&Type, "type", "t", "", "Type of the participant (\"consumer\" or \"provider\")")
 	publishCmd.Flags().StringVarP(&Branch, "branch", "b", "", "Version control branch (optional)")
 	publishCmd.Flags().StringVarP(&ProviderName, "provider-name", "n", "", "The name of the provider service (required if --type is \"provider\")")
 	publishCmd.Flags().StringVarP(&Version, "version", "v", "", "The version of the service (Defaults to git SHA)")
 	publishCmd.Flags().Lookup("version").NoOptDefVal = "auto"
+	publishCmd.Flags().Lookup("branch").NoOptDefVal = "auto"
 }
 
 func ValidType() error {
@@ -266,5 +231,83 @@ func setVersionToGitSha() error {
 	}
 
 	Version = string(gitSHA)
+	return nil
+}
+
+func setBranchToCurrentGit() error {
+	cmd := exec.Command("git", "branch", "--show-current")
+	currentBranch, err := cmd.Output()
+	if err != nil {
+		return errors.New("because this directory is not a git repository, --branch cannot default to current git branch")
+	}
+	if len(currentBranch) != 0 {
+		currentBranch = currentBranch[:len(currentBranch)-1]
+	}
+
+	Branch = string(currentBranch)
+	return nil
+}
+
+func publishConsumer(path string, brokerBaseUrl string) error {
+	if Branch == "auto" || (Branch == "" && (Version == "auto" || Version == "")) {
+		setBranchToCurrentGit()
+	}
+
+	if Version == "" || Version == "auto" {
+		setVersionToGitSha()
+	}
+
+	contract, err := loadContract(path)
+	if err != nil {
+		return err
+	}
+
+	consumerName := contract.Consumer.Name
+
+	if len(consumerName) == 0 {
+		return errors.New("consumer contract does not have a consumer name")
+	}
+
+	requestBody, err := createConsumerRequestBody(contract, consumerName, Version, Branch)
+	if err != nil {
+		return err
+	}
+
+	err = publishContract(brokerBaseUrl+"/api/contracts", requestBody)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func publishProvider(path string, brokerBaseUrl string) error {
+	if len(ProviderName) == 0 {
+		return errors.New("must set --provider-name if --type is \"provider\"")
+	}
+
+	if Branch == "auto" || (Branch == "" && Version == "auto") {
+		setBranchToCurrentGit()
+	}
+
+	if Version == "auto" {
+		setVersionToGitSha()
+	}
+
+	spec, specFormat, err := loadSpec(path)
+	if err != nil {
+		return err
+	}
+
+	requestBody, err := createProviderRequestBody(spec, ProviderName, Version, Branch, specFormat)
+	if err != nil {
+		return err
+	}
+
+	err = publishContract(brokerBaseUrl+"/api/specs", requestBody)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
