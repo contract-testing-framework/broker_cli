@@ -32,27 +32,16 @@ func (ao actualOut) startsWith(expected string, t *testing.T) {
 	}
 }
 
+type requestBody interface {
+	ConsumerBody | ProviderBody
+}
+
 /*
 returns a mock server and a pointer to a struct which
 will be populated with the request body when a request is made.
 used for any requests with a JSON request body, even when contract
 is YAML format
 */
-
-// type intOrString interface {
-// 	int | string
-// }
-
-// func Foo[T intOrString](x T) {
-// 	// x can be int or string
-// }
-
-// https://stackoverflow.com/questions/69772512/go-generics-unions
-
-type requestBody interface {
-	ConsumerBody | ProviderBody
-}
-
 func mockServerForJSONReq[T requestBody](t *testing.T) (*httptest.Server, *T) {
 	var reqBody T
 
