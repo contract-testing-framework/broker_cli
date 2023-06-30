@@ -57,7 +57,7 @@ var publishCmd = &cobra.Command{
 
 arguments:
 
-  publish [path to contract/spec] [broker url]
+	publish [path to contract/spec] [broker url]
 
 
 flags:
@@ -67,8 +67,8 @@ flags:
 -n -—provider-name 	canonical name of the provider service (only for —-type 'provider')
 
 -v -—version      	service version (required for --type 'consumer')
-                  	-—type=consumer: if flag not passed or passed without value, defaults to the git SHA of HEAD
-                  	-—type=provider: if the flag passed without value, defaults to git SHA
+										-—type=consumer: if flag not passed or passed without value, defaults to the git SHA of HEAD
+										-—type=provider: if the flag passed without value, defaults to git SHA
 
 -b -—branch       	git branch name (optional, defaults to current git branch)
 `,

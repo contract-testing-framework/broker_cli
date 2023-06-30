@@ -3,36 +3,62 @@ package cmd
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 )
 
-
 /* ------------- helpers ------------- */
 
-type actualOut struct{
+func teardown() {
+	Type = ""
+	Branch = ""
+	ProviderName = ""
+	Version = ""
+	ContractFormat = ""
+	Contract = []byte{}
+}
+
+type actualOut struct {
 	actual string
 }
 
 func (ao actualOut) startsWith(expected string, t *testing.T) {
 	if ao.actual[:len(expected)] != expected {
+		fmt.Println("ACTUAL: ")
+		fmt.Println(ao.actual)
 		t.Error()
 	}
 }
 
 /*
-	returns a mock server and a pointer to a struct which 
-	will be populated with the request body when a request is made.
-	used for any requests with a JSON request body, even when contract
-	is YAML format
+returns a mock server and a pointer to a struct which
+will be populated with the request body when a request is made.
+used for any requests with a JSON request body, even when contract
+is YAML format
 */
-func mockServerForJSONReq(t *testing.T) (*httptest.Server, *Body) {
-	var reqBody Body
+
+// type intOrString interface {
+// 	int | string
+// }
+
+// func Foo[T intOrString](x T) {
+// 	// x can be int or string
+// }
+
+// https://stackoverflow.com/questions/69772512/go-generics-unions
+
+type requestBody interface {
+	ConsumerBody | ProviderBody
+}
+
+func mockServerForJSONReq[T requestBody](t *testing.T) (*httptest.Server, *T) {
+	var reqBody T
 
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Header.Get("Content-Type") != "application/json" {
-				t.Errorf("Expected Content-Type: application/json header, got: %s", r.Header.Get("Content-Type"))
+			t.Errorf("Expected Content-Type: application/json header, got: %s", r.Header.Get("Content-Type"))
 		}
 
 		decoder := json.NewDecoder(r.Body)
@@ -57,14 +83,14 @@ func callPublish(argsAndFlags []string) actualOut {
 	return actualOut{actual.String()}
 }
 
-
 /* ------------- tests ------------- */
 
 func TestPublishNoArgs(t *testing.T) {
 	actual := callPublish([]string{})
-	expected := "Error: Two arguments are required"
+	expected := "Error: two arguments are required"
 
 	actual.startsWith(expected, t)
+	teardown()
 }
 
 func TestPublishNoType(t *testing.T) {
@@ -73,15 +99,17 @@ func TestPublishNoType(t *testing.T) {
 	expected := "Error: --type required to be \"consumer\" or \"provider\", --type was not set"
 
 	actual.startsWith(expected, t)
+	teardown()
 }
 
 func TestPublishNoProviderName(t *testing.T) {
 	args := []string{"../data_test/cons-prov.json", "http://localhost:3000/api/contracts"}
 	flags := []string{"--type", "provider"}
 	actual := callPublish(append(args, flags...))
-	expected := "Error: Must set --provider-name if --type is \"provider\""
+	expected := "Error: must set --provider-name if --type is \"provider\""
 
 	actual.startsWith(expected, t)
+	teardown()
 }
 
 func TestPublishContractDoesNotExist(t *testing.T) {
@@ -91,14 +119,15 @@ func TestPublishContractDoesNotExist(t *testing.T) {
 	expected := "Error: open ../data_test/non-existant.json: no such file or directory"
 
 	actual.startsWith(expected, t)
+	teardown()
 }
 
-func TestPublishConsumerContract(t *testing.T) {
-	server, reqBody := mockServerForJSONReq(t)
+func TestPublishConsumerWithoutVersionOrBranch(t *testing.T) {
+	server, reqBody := mockServerForJSONReq[ConsumerBody](t)
 	defer server.Close()
 
 	args := []string{"../data_test/cons-prov.json", server.URL}
-	flags := []string{"--type", "consumer", "--branch", "main"}
+	flags := []string{"--type", "consumer"}
 	actual := callPublish(append(args, flags...))
 
 	t.Run("prints nothing to stdout", func(t *testing.T) {
@@ -107,49 +136,66 @@ func TestPublishConsumerContract(t *testing.T) {
 		}
 	})
 
-	t.Run("has correct contractType", func(t *testing.T) {
-		if reqBody.ContractType != "consumer" {
+	t.Run("has a consumerVersion", func(t *testing.T) {
+		if len(reqBody.ConsumerVersion) == 0 {
 			t.Error()
 		}
 	})
 
-	t.Run("has correct participantName", func(t *testing.T) {
-		if reqBody.ParticipantName != "service_1" {
+	t.Run("has a consumerBranch", func(t *testing.T) {
+		if len(reqBody.ConsumerBranch) == 0 {
 			t.Error()
 		}
 	})
-
-	t.Run("has a participantVersion", func(t *testing.T) {
-		if len(reqBody.ParticipantVersion) == 0 {
-			t.Error()
-		}
-	})
-
-	t.Run("has correct participantBranch", func(t *testing.T) {
-		if reqBody.ParticipantBranch != "main" {
-			t.Error()
-		}
-	})
-
-	t.Run("has correct contractFormat", func(t *testing.T) {
-		if reqBody.ContractFormat != "json" {
-			t.Error()
-		}
-	})
-
-	t.Run("has non-null contract", func(t *testing.T) {
-		if reqBody.Contract == nil {
-			t.Error()
-		}
-	})
+	teardown()
 }
 
-func TestPublishProviderJSONSpec(t *testing.T) {
-	server, reqBody := mockServerForJSONReq(t)
+func TestPublishConsumerWithVersion(t *testing.T) {
+	server, reqBody := mockServerForJSONReq[ConsumerBody](t)
+	defer server.Close()
+
+	args := []string{"../data_test/cons-prov.json", server.URL}
+	flags := []string{"--type", "consumer", "--version=version1", "--branch", "main"}
+	actual := callPublish(append(args, flags...))
+
+	t.Run("prints nothing to stdout", func(t *testing.T) {
+		if actual.actual != "" {
+			t.Error()
+		}
+	})
+
+	t.Run("has correct consumerName", func(t *testing.T) {
+		if reqBody.ConsumerName != "service_1" {
+			t.Error()
+		}
+	})
+
+	t.Run("has correct consumerVersion", func(t *testing.T) {
+		if reqBody.ConsumerVersion != "version1" {
+			t.Error()
+		}
+	})
+
+	t.Run("has correct consumerBranch", func(t *testing.T) {
+		if reqBody.ConsumerBranch != "main" {
+			t.Error()
+		}
+	})
+
+	t.Run("has the value of the contract", func(t *testing.T) {
+		if reqBody.Contract.Consumer.Name != "service_1" {
+			t.Error()
+		}
+	})
+	teardown()
+}
+
+func TestPublishProviderWithoutVersion(t *testing.T) {
+	server, reqBody := mockServerForJSONReq[ProviderBody](t)
 	defer server.Close()
 
 	args := []string{"../data_test/api-spec.json", server.URL}
-	flags := []string{"--type", "provider", "--provider-name", "user_service", "--branch", "main"}
+	flags := []string{"--type", "provider", "--provider-name", "user_service"}
 	actual := callPublish(append(args, flags...))
 
 	t.Run("prints nothing to stdout", func(t *testing.T) {
@@ -158,49 +204,75 @@ func TestPublishProviderJSONSpec(t *testing.T) {
 		}
 	})
 
-	t.Run("has correct contractType", func(t *testing.T) {
-		if reqBody.ContractType != "provider" {
+	t.Run("has correct providerName", func(t *testing.T) {
+		if reqBody.ProviderName != "user_service" {
 			t.Error()
 		}
 	})
 
-	t.Run("has correct participantName", func(t *testing.T) {
-		if reqBody.ParticipantName != "user_service" {
+	t.Run("does not have providerVersion", func(t *testing.T) {
+		fmt.Println(reqBody.ProviderVersion)
+		if len(reqBody.ProviderVersion) != 0 {
 			t.Error()
 		}
 	})
 
-	t.Run("does not have participantVersion", func(t *testing.T) {
-		if len(reqBody.ParticipantVersion) != 0 {
+	t.Run("does not have providerBranch", func(t *testing.T) {
+		if len(reqBody.ProviderBranch) != 0 {
 			t.Error()
 		}
 	})
 
-	t.Run("has correct participantBranch", func(t *testing.T) {
-		if reqBody.ParticipantBranch != "main" {
+	t.Run("has correct specFormat", func(t *testing.T) {
+		if reqBody.SpecFormat != "json" {
 			t.Error()
 		}
 	})
 
-	t.Run("has correct contractFormat", func(t *testing.T) {
-		if reqBody.ContractFormat != "json" {
+	t.Run("has non-nil spec", func(t *testing.T) {
+		if reqBody.Spec == nil {
+			t.Error()
+		}
+	})
+	teardown()
+}
+
+func TestPublishProviderWithVersionAndBranch(t *testing.T) {
+	server, reqBody := mockServerForJSONReq[ProviderBody](t)
+	defer server.Close()
+
+	args := []string{"../data_test/api-spec.json", server.URL}
+	flags := []string{"--type", "provider", "--provider-name", "user_service", "--version=version1", "--branch=main"}
+	actual := callPublish(append(args, flags...))
+
+	t.Run("prints nothing to stdout", func(t *testing.T) {
+		if actual.actual != "" {
 			t.Error()
 		}
 	})
 
-	t.Run("has non-null contract", func(t *testing.T) {
-		if reqBody.Contract == nil {
+	t.Run("has correct providerVersion", func(t *testing.T) {
+		fmt.Println(reqBody.ProviderVersion)
+		if reqBody.ProviderVersion != "version1" {
 			t.Error()
 		}
 	})
+
+	t.Run("has correct providerBranch", func(t *testing.T) {
+		if reqBody.ProviderBranch != "main" {
+			t.Error()
+		}
+	})
+
+	teardown()
 }
 
 func TestPublishProviderYAMLSpec(t *testing.T) {
-	server, reqBody := mockServerForJSONReq(t)
+	server, reqBody := mockServerForJSONReq[ProviderBody](t)
 	defer server.Close()
 
 	args := []string{"../data_test/api-spec.yaml", server.URL}
-	flags := []string{"--type", "provider", "--provider-name", "user_service", "--branch", "main"}
+	flags := []string{"--type", "provider", "--provider-name", "user_service"}
 	actual := callPublish(append(args, flags...))
 
 	t.Run("prints nothing to stdout", func(t *testing.T) {
@@ -209,39 +281,36 @@ func TestPublishProviderYAMLSpec(t *testing.T) {
 		}
 	})
 
-	t.Run("has correct contractType", func(t *testing.T) {
-		if reqBody.ContractType != "provider" {
+	t.Run("has correct providerName", func(t *testing.T) {
+		if reqBody.ProviderName != "user_service" {
 			t.Error()
 		}
 	})
 
-	t.Run("has correct participantName", func(t *testing.T) {
-		if reqBody.ParticipantName != "user_service" {
+	t.Run("does not have providerVersion", func(t *testing.T) {
+		fmt.Println(reqBody.ProviderVersion)
+		if len(reqBody.ProviderVersion) != 0 {
 			t.Error()
 		}
 	})
 
-	t.Run("does not have participantVersion", func(t *testing.T) {
-		if len(reqBody.ParticipantVersion) != 0 {
+	t.Run("does not have providerBranch", func(t *testing.T) {
+		if len(reqBody.ProviderBranch) != 0 {
 			t.Error()
 		}
 	})
 
-	t.Run("has correct participantBranch", func(t *testing.T) {
-		if reqBody.ParticipantBranch != "main" {
+	t.Run("has correct specFormat", func(t *testing.T) {
+		if reqBody.SpecFormat != "yaml" {
 			t.Error()
 		}
 	})
 
-	t.Run("has correct contractFormat", func(t *testing.T) {
-		if reqBody.ContractFormat != "yaml" {
+	t.Run("has non-nil spec", func(t *testing.T) {
+		if reqBody.Spec == nil {
 			t.Error()
 		}
 	})
 
-	t.Run("has non-null contract", func(t *testing.T) {
-		if reqBody.Contract == nil {
-			t.Error()
-		}
-	})
+	teardown()
 }
