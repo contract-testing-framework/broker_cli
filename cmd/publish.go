@@ -22,22 +22,23 @@ var publishCmd = &cobra.Command{
 	Short: "Publish a contract or spec to the broker",
 	Long: `Publish a consumer contract or provider spec to the broker.
 
-arguments:
+	flags:
 
-	publish [path to contract/spec] [broker url]
-
-
-flags:
-
--t -—type         	the type of service contract (either 'consumer' or 'provider')
-
--n -—provider-name 	canonical name of the provider service (only for —-type 'provider')
-
--v -—version      	service version (required for --type 'consumer')
-										-—type=consumer: if flag not passed or passed without value, defaults to the git SHA of HEAD
-										-—type=provider: if the flag passed without value, defaults to git SHA
-
--b -—branch       	git branch name (optional, defaults to current git branch)
+	-i --ignore-config  ingore .signetrc.yaml file if it exists
+	
+	-p --path           the relative path to the contract or spec
+	
+	-u --broker-url     the scheme, domain, and port where the Signet Broker is being hosted (ex. http://localhost:3000)
+	
+	-t -—type           the type of service contract (either 'consumer' or 'provider')
+	
+	-n -—provider-name  canonical name of the provider service (only for —-type 'provider')
+	
+	-v -—version        service version (required for --type 'consumer')
+											-—type=consumer: if flag not passed or passed without value, defaults to the git SHA of HEAD
+											-—type=provider: if the flag passed without value, defaults to git SHA
+	
+	-b -—branch         git branch name (optional, defaults to current git branch)
 `,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		readConfigFile()

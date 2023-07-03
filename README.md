@@ -19,12 +19,13 @@ In your local *go* environment:
 - The `publish` command pushes a local contract or spec to the broker. This automatically triggers contract/spec comparison if the broker already has a contract for the other participant in the integration.
 
 ```bash
-arguments:
-
-  publish [path to contract/spec] [broker url]
-
-
 flags:
+
+-i --ignore-config  ingore .signetrc.yaml file if it exists
+
+-p --path           the relative path to the contract or spec
+
+-u --broker-url     the scheme, domain, and port where the Signet Broker is being hosted (ex. http://localhost:3000)
 
 -t -—type           the type of service contract (either 'consumer' or 'provider')
 
@@ -37,20 +38,37 @@ flags:
 -b -—branch         git branch name (optional, defaults to current git branch)
 ```
 
+- if a `.signetrc.yaml` file is present in the root directory, the broker_cli will read values for flags from it. Any flags which are explicitly passed on the command line will override the values in `.signetrc.yaml`.
+
+- `.signetrc.yaml` supports these flags for consumers:
+```yaml
+type: consumer
+path: ./data_test/cons-prov.json
+broker-url: http://localhost:3000
+```
+
+- `.signetrc.yaml` supports these flags for providers:
+```yaml
+type: provider
+path: ./data_test/api-spec.json
+broker-url: http://localhost:3000
+provider-name: user_service
+```
+
 ### Publishing a Contract (in development)
 
 `go run main.go publish --help` lists required arguments and flags
 
-#### Publishing a Consumer Contract
+#### Publishing a Consumer Contract (with explicit flags)
 
 ```bash
-broker_cli publish ./data_test/api-spec.yaml http://localhost:3000/api/contracts --type provider --provider-name example-provider
+broker_cli publish --path=./data_test/cons-prov.json --broker-url=http://localhost:3000 --type consumer
 ```
 
-#### Publish a Provider Specification (yaml)
+#### Publish a Provider Specification (yaml, with explicit flags)
 
 ```bash
-go run main.go publish ./data_test/api-spec.yaml http://localhost:3000/api/contracts --type provider --provider-name example-provider
+broker_cli publish --path=./data_test/api-spec.yaml --broker-url=http://localhost:3000 --type provider --provider-name example-provider
 ```
 
 ## Release updated binaries
