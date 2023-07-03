@@ -1,4 +1,4 @@
-BINARY_NAME=broker_cli
+BINARY_NAME=signet
 
 build:
 	GOARCH=arm64 GOOS=darwin go build -o ./bin/${BINARY_NAME}-darwin-arm64 main.go

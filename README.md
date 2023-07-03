@@ -1,6 +1,6 @@
 # README.md
 
-`broker_cli`, command line interface for the contract testing broker.
+The command line interface for the Signet contract testing framework.
 
 ## Cloning the repo
 
@@ -14,7 +14,7 @@ In your local *go* environment:
 
 ## Docs
 
-### broker_cli publish
+### signet publish
 
 - The `publish` command pushes a local contract or spec to the broker. This automatically triggers contract/spec comparison if the broker already has a contract for the other participant in the integration.
 
@@ -55,20 +55,20 @@ broker-url: http://localhost:3000
 provider-name: user_service
 ```
 
-### Publishing a Contract (in development)
+### Publishing a Contract (development)
 
-`go run main.go publish --help` lists required arguments and flags
+`go run main.go publish --help` lists required flags
 
-#### Publishing a Consumer Contract (with explicit flags)
+#### Publishing a Consumer Contract (binary - with explicit flags)
 
 ```bash
-broker_cli publish --path=./data_test/cons-prov.json --broker-url=http://localhost:3000 --type consumer
+signet publish --path=./data_test/cons-prov.json --broker-url=http://localhost:3000 --type consumer
 ```
 
-#### Publish a Provider Specification (yaml, with explicit flags)
+#### Publish a Provider Specification (binary - yaml, with explicit flags)
 
 ```bash
-broker_cli publish --path=./data_test/api-spec.yaml --broker-url=http://localhost:3000 --type provider --provider-name example-provider
+signet publish --path=./data_test/api-spec.yaml --broker-url=http://localhost:3000 --type provider --provider-name example-provider
 ```
 
 ## Release updated binaries
@@ -93,7 +93,7 @@ broker_cli publish --path=./data_test/api-spec.yaml --broker-url=http://localhos
   - ex.
 
   ```bash
-  curl -sLO https://github.com/contract-testing-framework/broker_cli/releases/download/v0.1.4/broker_cli-darwin-arm64
+  curl -sLO https://github.com/contract-testing-framework/broker_cli/releases/download/v0.1.4/signet-darwin-arm64
   ```
 
 - give the binary executable permissions: `chmod +x BINARY_FILE_NAME`

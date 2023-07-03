@@ -9,9 +9,9 @@ import (
 
 // rootCmd represents the base command when called without any subcommands
 var RootCmd = &cobra.Command{
-	Use:   "broker_cli",
-	Short: "A command line interface for the contract broker",
-	Long:  `A command line interface for the contract broker`,
+	Use:   "signet",
+	Short: "The command line interface for the Signet contract testing framework",
+	Long:  `The command line interface for the Signet contract testing framework`,
 }
 
 func Execute() {
