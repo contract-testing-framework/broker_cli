@@ -74,17 +74,32 @@ func callPublish(argsAndFlags []string) actualOut {
 
 /* ------------- tests ------------- */
 
-func TestPublishNoArgs(t *testing.T) {
-	actual := callPublish([]string{})
-	expected := "Error: two arguments are required"
+func TestPublishNoPath(t *testing.T) {
+	flags := []string{}
+	actual := callPublish(flags)
+	expected := "Error: No --path to a contract/spec was provided."
+
+	actual.startsWith(expected, t)
+	teardown()
+}
+
+func TestPublishNoBrokerURL(t *testing.T) {
+	flags := []string{
+		"--path=../data_test/cons-prov.json",
+	}
+	actual := callPublish(flags)
+	expected := "Error: No --broker-url was provided."
 
 	actual.startsWith(expected, t)
 	teardown()
 }
 
 func TestPublishNoType(t *testing.T) {
-	args := []string{"../data_test/cons-prov.json", "http://localhost:3000/api/contracts"}
-	actual := callPublish(args)
+	flags := []string{
+		"--path=../data_test/cons-prov.json",
+		"--broker-url=http://localhost:3000",
+	}
+	actual := callPublish(flags)
 	expected := "Error: --type required to be \"consumer\" or \"provider\", --type was not set"
 
 	actual.startsWith(expected, t)
@@ -92,9 +107,12 @@ func TestPublishNoType(t *testing.T) {
 }
 
 func TestPublishNoProviderName(t *testing.T) {
-	args := []string{"../data_test/cons-prov.json", "http://localhost:3000/api/contracts"}
-	flags := []string{"--type", "provider"}
-	actual := callPublish(append(args, flags...))
+	flags := []string{
+		"--path=../data_test/cons-prov.json",
+		"--broker-url=http://localhost:3000",
+		"--type", "provider",
+	}
+	actual := callPublish(flags)
 	expected := "Error: must set --provider-name if --type is \"provider\""
 
 	actual.startsWith(expected, t)
@@ -102,9 +120,12 @@ func TestPublishNoProviderName(t *testing.T) {
 }
 
 func TestPublishContractDoesNotExist(t *testing.T) {
-	args := []string{"../data_test/non-existant.json", "http://localhost:3000/api/contracts"}
-	flags := []string{"--type", "consumer"}
-	actual := callPublish(append(args, flags...))
+	flags := []string{
+		"--path=../data_test/non-existant.json",
+		"--broker-url=http://localhost:3000",
+		"--type", "consumer",
+	}
+	actual := callPublish(flags)
 	expected := "Error: open ../data_test/non-existant.json: no such file or directory"
 
 	actual.startsWith(expected, t)
@@ -115,9 +136,12 @@ func TestPublishConsumerWithoutVersionOrBranch(t *testing.T) {
 	server, reqBody := mockServerForJSONReq[ConsumerBody](t)
 	defer server.Close()
 
-	args := []string{"../data_test/cons-prov.json", server.URL}
-	flags := []string{"--type", "consumer"}
-	actual := callPublish(append(args, flags...))
+	flags := []string{
+		"--path=../data_test/cons-prov.json",
+		"--broker-url", server.URL,
+		"--type", "consumer",
+	}
+	actual := callPublish(flags)
 
 	t.Run("prints nothing to stdout", func(t *testing.T) {
 		if actual.actual != "" {
@@ -143,9 +167,14 @@ func TestPublishConsumerWithVersion(t *testing.T) {
 	server, reqBody := mockServerForJSONReq[ConsumerBody](t)
 	defer server.Close()
 
-	args := []string{"../data_test/cons-prov.json", server.URL}
-	flags := []string{"--type", "consumer", "--version=version1", "--branch", "main"}
-	actual := callPublish(append(args, flags...))
+	flags := []string{
+		"--path=../data_test/cons-prov.json",
+		"--broker-url", server.URL,
+		"--type", "consumer",
+		"--version=version1",
+		"--branch=main",
+	}
+	actual := callPublish(flags)
 
 	t.Run("prints nothing to stdout", func(t *testing.T) {
 		if actual.actual != "" {
@@ -183,9 +212,13 @@ func TestPublishProviderWithoutVersion(t *testing.T) {
 	server, reqBody := mockServerForJSONReq[ProviderBody](t)
 	defer server.Close()
 
-	args := []string{"../data_test/api-spec.json", server.URL}
-	flags := []string{"--type", "provider", "--provider-name", "user_service"}
-	actual := callPublish(append(args, flags...))
+	flags := []string{
+		"--path=../data_test/api-spec.json",
+		"--broker-url", server.URL,
+		"--type", "provider",
+		"--provider-name", "user_service",
+	}
+	actual := callPublish(flags)
 
 	t.Run("prints nothing to stdout", func(t *testing.T) {
 		if actual.actual != "" {
@@ -230,9 +263,15 @@ func TestPublishProviderWithVersionAndBranch(t *testing.T) {
 	server, reqBody := mockServerForJSONReq[ProviderBody](t)
 	defer server.Close()
 
-	args := []string{"../data_test/api-spec.json", server.URL}
-	flags := []string{"--type", "provider", "--provider-name", "user_service", "--version=version1", "--branch=main"}
-	actual := callPublish(append(args, flags...))
+	flags := []string{
+		"--path=../data_test/api-spec.json",
+		"--broker-url", server.URL,
+		"--type", "provider",
+		"--provider-name", "user_service",
+		"--version=version1",
+		"--branch=main",
+	}
+	actual := callPublish(flags)
 
 	t.Run("prints nothing to stdout", func(t *testing.T) {
 		if actual.actual != "" {
@@ -260,9 +299,13 @@ func TestPublishProviderYAMLSpec(t *testing.T) {
 	server, reqBody := mockServerForJSONReq[ProviderBody](t)
 	defer server.Close()
 
-	args := []string{"../data_test/api-spec.yaml", server.URL}
-	flags := []string{"--type", "provider", "--provider-name", "user_service"}
-	actual := callPublish(append(args, flags...))
+	flags := []string{
+		"--path=../data_test/api-spec.yaml",
+		"--broker-url", server.URL,
+		"--type", "provider",
+		"--provider-name", "user_service",
+	}
+	actual := callPublish(flags)
 
 	t.Run("prints nothing to stdout", func(t *testing.T) {
 		if actual.actual != "" {

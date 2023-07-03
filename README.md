@@ -1,6 +1,6 @@
 # README.md
 
-`broker_cli`, command line interface for the contract testing broker.
+The command line interface for the Signet contract testing framework.
 
 ## Cloning the repo
 
@@ -14,17 +14,18 @@ In your local *go* environment:
 
 ## Docs
 
-### broker_cli publish
+### signet publish
 
 - The `publish` command pushes a local contract or spec to the broker. This automatically triggers contract/spec comparison if the broker already has a contract for the other participant in the integration.
 
 ```bash
-arguments:
-
-  publish [path to contract/spec] [broker url]
-
-
 flags:
+
+-i --ignore-config  ingore .signetrc.yaml file if it exists
+
+-p --path           the relative path to the contract or spec
+
+-u --broker-url     the scheme, domain, and port where the Signet Broker is being hosted (ex. http://localhost:3000)
 
 -t -—type           the type of service contract (either 'consumer' or 'provider')
 
@@ -37,20 +38,37 @@ flags:
 -b -—branch         git branch name (optional, defaults to current git branch)
 ```
 
-### Publishing a Contract (in development)
+- if a `.signetrc.yaml` file is present in the root directory, the broker_cli will read values for flags from it. Any flags which are explicitly passed on the command line will override the values in `.signetrc.yaml`.
 
-`go run main.go publish --help` lists required arguments and flags
-
-#### Publishing a Consumer Contract
-
-```bash
-broker_cli publish ./data_test/api-spec.yaml http://localhost:3000/api/contracts --type provider --provider-name example-provider
+- `.signetrc.yaml` supports these flags for consumers:
+```yaml
+type: consumer
+path: ./data_test/cons-prov.json
+broker-url: http://localhost:3000
 ```
 
-#### Publish a Provider Specification (yaml)
+- `.signetrc.yaml` supports these flags for providers:
+```yaml
+type: provider
+path: ./data_test/api-spec.json
+broker-url: http://localhost:3000
+provider-name: user_service
+```
+
+### Publishing a Contract (development)
+
+`go run main.go publish --help` lists required flags
+
+#### Publishing a Consumer Contract (binary - with explicit flags)
 
 ```bash
-go run main.go publish ./data_test/api-spec.yaml http://localhost:3000/api/contracts --type provider --provider-name example-provider
+signet publish --path=./data_test/cons-prov.json --broker-url=http://localhost:3000 --type consumer
+```
+
+#### Publish a Provider Specification (binary - yaml, with explicit flags)
+
+```bash
+signet publish --path=./data_test/api-spec.yaml --broker-url=http://localhost:3000 --type provider --provider-name example-provider
 ```
 
 ## Release updated binaries
@@ -75,7 +93,7 @@ go run main.go publish ./data_test/api-spec.yaml http://localhost:3000/api/contr
   - ex.
 
   ```bash
-  curl -sLO https://github.com/contract-testing-framework/broker_cli/releases/download/v0.1.4/broker_cli-darwin-arm64
+  curl -sLO https://github.com/contract-testing-framework/broker_cli/releases/download/v0.1.4/signet-darwin-arm64
   ```
 
 - give the binary executable permissions: `chmod +x BINARY_FILE_NAME`
