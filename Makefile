@@ -7,4 +7,4 @@ build:
 	GOARCH=amd64 GOOS=windows go build -o ./bin/${BINARY_NAME}-windows-amd64 main.go
 
 test:
-	go test ./...
+	go test ./... -count=1

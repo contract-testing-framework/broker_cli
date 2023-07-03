@@ -7,6 +7,7 @@ import (
 	"github.com/spf13/viper"
 )
 
+var IgnoreConfig bool
 var Path string
 var BrokerBaseURL string
 var Type string
@@ -39,11 +40,7 @@ flags:
 -b -—branch       	git branch name (optional, defaults to current git branch)
 `,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		// get flag values from config file if not passed in on command line
-		Path = viper.GetString("path")
-		BrokerBaseURL = viper.GetString("broker-url")
-		Type = viper.GetString("type")
-		ProviderName = viper.GetString("provider-name")
+		readConfigFile()
 
 		if len(Path) == 0 {
 			return errors.New("No --path to a contract/spec was provided. This is a required flag.")
@@ -76,6 +73,8 @@ flags:
 
 func init() {
 	RootCmd.AddCommand(publishCmd)
+
+	publishCmd.Flags().BoolVarP(&IgnoreConfig, "ignore-config", "i", false, "ignore config file if present")
 	publishCmd.Flags().StringVarP(&Path, "path", "p", "", "Relative path from the root directory to the contract or spec file")
 	publishCmd.Flags().StringVarP(&BrokerBaseURL, "broker-url", "u", "", "Scheme, domain, and port where the Signet Broker is being hosted (ex. http://localhost:3000)")
 	publishCmd.Flags().StringVarP(&Type, "type", "t", "", "Type of the participant (\"consumer\" or \"provider\")")
@@ -85,17 +84,27 @@ func init() {
 	publishCmd.Flags().Lookup("version").NoOptDefVal = "auto"
 	publishCmd.Flags().Lookup("branch").NoOptDefVal = "auto"
 
-	viper.AddConfigPath(".")
-	viper.SetConfigName(".signetrc.yaml")
-	viper.SetConfigType("yaml")
-	if err := viper.ReadInConfig(); err != nil {
-		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
-			panic(err)
-		}
-	}
-
 	viper.BindPFlag("path", publishCmd.Flags().Lookup("path"))
 	viper.BindPFlag("broker-url", publishCmd.Flags().Lookup("broker-url"))
 	viper.BindPFlag("type", publishCmd.Flags().Lookup("type"))
 	viper.BindPFlag("provider-name", publishCmd.Flags().Lookup("provider-name"))
+}
+
+func readConfigFile() {
+	if IgnoreConfig == false {
+		viper.AddConfigPath(".")
+		viper.SetConfigName(".signetrc.yaml")
+		viper.SetConfigType("yaml")
+		if err := viper.ReadInConfig(); err != nil {
+			if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
+				panic(err)
+			}
+		}
+	}
+
+	// get flag values from config file if not passed in on command line
+	Path = viper.GetString("path")
+	BrokerBaseURL = viper.GetString("broker-url")
+	Type = viper.GetString("type")
+	ProviderName = viper.GetString("provider-name")
 }

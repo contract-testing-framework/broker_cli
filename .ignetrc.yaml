@@ -1,3 +1,0 @@
-type: consumer
-path: ./data_test/cons-prov.json
-broker-url: http://localhost:3000

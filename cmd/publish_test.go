@@ -75,7 +75,8 @@ func callPublish(argsAndFlags []string) actualOut {
 /* ------------- tests ------------- */
 
 func TestPublishNoPath(t *testing.T) {
-	actual := callPublish([]string{})
+	flags := []string{}
+	actual := callPublish(flags)
 	expected := "Error: No --path to a contract/spec was provided."
 
 	actual.startsWith(expected, t)
@@ -83,7 +84,10 @@ func TestPublishNoPath(t *testing.T) {
 }
 
 func TestPublishNoBrokerURL(t *testing.T) {
-	actual := callPublish([]string{"--path=../data_test/cons-prov.json"})
+	flags := []string{
+		"--path=../data_test/cons-prov.json",
+	}
+	actual := callPublish(flags)
 	expected := "Error: No --broker-url was provided."
 
 	actual.startsWith(expected, t)

@@ -1,0 +1,4 @@
+type: provider
+path: ./data_test/api-spec.json
+broker-url: http://localhost:3000
+provider-name: user_service
