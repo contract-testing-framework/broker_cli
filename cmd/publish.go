@@ -1,11 +1,14 @@
 package cmd
 
 import (
-	"errors"
+	// "errors"
 	
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
+var Path string
+var BrokerBaseURL string
 var Type string
 var Branch string
 var ProviderName string
@@ -36,11 +39,10 @@ flags:
 -b -—branch       	git branch name (optional, defaults to current git branch)
 `,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		if len(args) < 2 {
-			return errors.New("two arguments are required")
-		}
-		path := args[0]
-		brokerBaseUrl := args[1]
+		Path = viper.GetString("path")
+		BrokerBaseURL = viper.GetString("broker-url")
+		Type = viper.GetString("type")
+		ProviderName = viper.GetString("provider-name")
 
 		err := ValidType()
 		if err != nil {
@@ -48,12 +50,12 @@ flags:
 		}
 
 		if Type == "consumer" {
-			err = PublishConsumer(path, brokerBaseUrl)
+			err = PublishConsumer(Path, BrokerBaseURL)
 			if err != nil {
 				return err
 			}
 		} else {
-			err = PublishProvider(path, brokerBaseUrl)
+			err = PublishProvider(Path, BrokerBaseURL)
 			if err != nil {
 				return err
 			}
@@ -65,10 +67,26 @@ flags:
 
 func init() {
 	RootCmd.AddCommand(publishCmd)
+	publishCmd.Flags().StringVarP(&Path, "path", "p", "", "Relative path from the root directory to the contract or spec file")
+	publishCmd.Flags().StringVarP(&BrokerBaseURL, "broker-url", "u", "", "Scheme, domain, and port where the Signet Broker is being hosted (ex. http://localhost:3000)")
 	publishCmd.Flags().StringVarP(&Type, "type", "t", "", "Type of the participant (\"consumer\" or \"provider\")")
 	publishCmd.Flags().StringVarP(&Branch, "branch", "b", "", "Version control branch (optional)")
 	publishCmd.Flags().StringVarP(&ProviderName, "provider-name", "n", "", "The name of the provider service (required if --type is \"provider\")")
 	publishCmd.Flags().StringVarP(&Version, "version", "v", "", "The version of the service (Defaults to git SHA)")
 	publishCmd.Flags().Lookup("version").NoOptDefVal = "auto"
 	publishCmd.Flags().Lookup("branch").NoOptDefVal = "auto"
+
+	viper.AddConfigPath(".")
+	viper.SetConfigName(".signetrc.yaml")
+	viper.SetConfigType("yaml")
+	if err := viper.ReadInConfig(); err != nil {
+		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
+			panic(err)
+		}
+	}
+
+	viper.BindPFlag("path", publishCmd.Flags().Lookup("path"))
+	viper.BindPFlag("broker-url", publishCmd.Flags().Lookup("broker-url"))
+	viper.BindPFlag("type", publishCmd.Flags().Lookup("type"))
+	viper.BindPFlag("provider-name", publishCmd.Flags().Lookup("provider-name"))
 }
