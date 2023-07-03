@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	// "errors"
+	"errors"
 	
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -39,10 +39,19 @@ flags:
 -b -—branch       	git branch name (optional, defaults to current git branch)
 `,
 	RunE: func(cmd *cobra.Command, args []string) error {
+		// get flag values from config file if not passed in on command line
 		Path = viper.GetString("path")
 		BrokerBaseURL = viper.GetString("broker-url")
 		Type = viper.GetString("type")
 		ProviderName = viper.GetString("provider-name")
+
+		if len(Path) == 0 {
+			return errors.New("No --path to a contract/spec was provided. This is a required flag.")
+		}
+
+		if len(BrokerBaseURL) == 0 {
+			return errors.New("No --broker-url was provided. This is a required flag.")
+		}
 
 		err := ValidType()
 		if err != nil {
