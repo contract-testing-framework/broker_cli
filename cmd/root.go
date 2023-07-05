@@ -5,7 +5,11 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
+
+var IgnoreConfig bool
+var BrokerBaseURL string
 
 // rootCmd represents the base command when called without any subcommands
 var RootCmd = &cobra.Command{
@@ -15,9 +19,32 @@ var RootCmd = &cobra.Command{
 }
 
 func Execute() {
+	readConfigFile()
+	BrokerBaseURL = viper.GetString("broker-url")
+
 	err := RootCmd.Execute()
 	if err != nil {
 		fmt.Printf("Error: %v\n", err)
 		os.Exit(1)
+	}
+}
+
+func init() {
+	publishCmd.Flags().BoolVarP(&IgnoreConfig, "ignore-config", "i", false, "ignore config file if present")
+	publishCmd.Flags().StringVarP(&BrokerBaseURL, "broker-url", "u", "", "Scheme, domain, and port where the Signet Broker is being hosted (ex. http://localhost:3000)")
+
+	viper.BindPFlag("broker-url", publishCmd.Flags().Lookup("broker-url"))
+}
+
+func readConfigFile() {
+	if IgnoreConfig == false {
+		viper.AddConfigPath(".")
+		viper.SetConfigName(".signetrc.yaml")
+		viper.SetConfigType("yaml")
+		if err := viper.ReadInConfig(); err != nil {
+			if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
+				panic(err)
+			}
+		}
 	}
 }

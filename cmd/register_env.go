@@ -3,13 +3,10 @@ package cmd
 import (
 	"errors"
 	"encoding/json"
-	// "fmt"
 
 	"github.com/spf13/cobra"
-	// "github.com/spf13/viper"
 )
 
-var brokerBaseURL string
 var name string
 
 var registerEnvCmd = &cobra.Command{
@@ -17,9 +14,16 @@ var registerEnvCmd = &cobra.Command{
 	Short: "register a new deployment environment",
 	Long: `register a new deployment environment so that the Signet broker can be informed of which service versions are deployed to which environments.
 	
+	flags:
+
+	-n --name           the name of the deployment environment being registered (ex. production)
+
+	-i --ignore-config  ingore .signetrc.yaml file if it exists
+	
+	-u --broker-url     the scheme, domain, and port where the Signet Broker is being hosted (ex. http://localhost:3000)
 	`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		if len(brokerBaseURL) == 0 {
+		if len(BrokerBaseURL) == 0 {
 			return errors.New("No --broker-url was provided. This is a required flag.")
 		}
 
@@ -34,7 +38,7 @@ var registerEnvCmd = &cobra.Command{
 			return err
 		}
 
-		err = RegisterEnvWithBroker(brokerBaseURL+"/api/environments", jsonData)
+		err = RegisterEnvWithBroker(BrokerBaseURL+"/api/environments", jsonData)
 		if err != nil {
 			return err
 		}
@@ -46,6 +50,5 @@ var registerEnvCmd = &cobra.Command{
 func init() {
 	RootCmd.AddCommand(registerEnvCmd)
 
-	registerEnvCmd.Flags().StringVarP(&brokerBaseURL, "broker-url", "u", "", "Scheme, domain, and port where the Signet Broker is being hosted (ex. http://localhost:3000)")
 	registerEnvCmd.Flags().StringVarP(&name, "name", "n", "", "The name of the deployment environment being registered")
 }

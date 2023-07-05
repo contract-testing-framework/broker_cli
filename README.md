@@ -12,9 +12,10 @@ In your local *go* environment:
 - `git clone` the repo
 - `cd` into `broker_cli`
 
-## Docs
+# Docs
+------------
 
-### signet publish
+## `signet publish`
 
 - The `publish` command pushes a local contract or spec to the broker. This automatically triggers contract/spec comparison if the broker already has a contract for the other participant in the integration.
 
@@ -42,20 +43,24 @@ flags:
 
 - `.signetrc.yaml` supports these flags for consumers:
 ```yaml
-type: consumer
-path: ./data_test/cons-prov.json
 broker-url: http://localhost:3000
+
+publish:
+  type: consumer
+  path: ./data_test/cons-prov.json
 ```
 
 - `.signetrc.yaml` supports these flags for providers:
 ```yaml
-type: provider
-path: ./data_test/api-spec.json
 broker-url: http://localhost:3000
-provider-name: user_service
+
+publish:
+  type: provider
+  path: ./data_test/api-spec.json
+  provider-name: user_service
 ```
 
-### Publishing a Contract (development)
+#### Publishing a Contract (development)
 
 `go run main.go publish --help` lists required flags
 
@@ -71,6 +76,22 @@ signet publish --path=./data_test/cons-prov.json --broker-url=http://localhost:3
 signet publish --path=./data_test/api-spec.yaml --broker-url=http://localhost:3000 --type provider --provider-name example-provider
 ```
 
+## `signet register-env`
+
+- The `register-env` command informs the Signet broker about a deployment environment. This is a prerequisite for allowing to the Signet broker to keep track of which versions of each service are
+currently deployed to which environment.
+
+```bash
+flags:
+
+-n --name           the name of the deployment environment being registered (ex. production)
+
+-i --ignore-config  ingore .signetrc.yaml file if it exists
+
+-u --broker-url     the scheme, domain, and port where the Signet Broker is being hosted (ex. http://localhost:3000)
+```
+
+# Other Development Details
 ## Release updated binaries
 
 - build new binaries with `make build`
