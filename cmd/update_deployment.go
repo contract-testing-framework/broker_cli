@@ -11,8 +11,8 @@ var version string
 var environment string
 var delete bool
 
-var deployCmd = &cobra.Command{
-	Use:   "deploy",
+var updateDeploymentCmd = &cobra.Command{
+	Use:   "update-deployment",
 	Short: "notify the broker of a new deployment",
 	Long: `notify the broker that a participant version has been deployed to an environment
 	
@@ -51,6 +51,7 @@ var deployCmd = &cobra.Command{
 			EnvironmentName: environment,
 			ParticipantName: name,
 			ParticipantVersion: version,
+			Deployed: !delete,
 		}
 
 		jsonData, err := json.Marshal(requestBody)
@@ -58,26 +59,21 @@ var deployCmd = &cobra.Command{
 			return err
 		}
 
-		if delete {
-			err = DeleteDeploymentFromBroker(BrokerBaseURL+"/api/environments", jsonData)
-		} else {
-			err = RegisterDeploymentWithBroker(BrokerBaseURL+"/api/environments", jsonData)
-			if err != nil {
-				return err
-			}
+		err = UpdateDeploymentWithBroker(BrokerBaseURL+"/api/participants", jsonData)
+		if err != nil {
+			return err
 		}
-
 
 		return nil
 	},
 }
 
 func init() {
-	RootCmd.AddCommand(deployCmd)
+	RootCmd.AddCommand(updateDeploymentCmd)
 
-	deployCmd.Flags().StringVarP(&name, "name", "n", "", "The name of the service which was deployed")
-	deployCmd.Flags().StringVarP(&version, "version", "v", "", "The version of the service which was deployed")
-	deployCmd.Flags().StringVarP(&environment, "environment", "e", "", "The environment which the service was deployed to")
-	deployCmd.Flags().BoolVarP(&delete, "delete", "d", false, "The service is no longer deployed to the environment")
-	deployCmd.Flags().Lookup("version").NoOptDefVal = "auto"
+	updateDeploymentCmd.Flags().StringVarP(&name, "name", "n", "", "The name of the service which was deployed")
+	updateDeploymentCmd.Flags().StringVarP(&version, "version", "v", "", "The version of the service which was deployed")
+	updateDeploymentCmd.Flags().StringVarP(&environment, "environment", "e", "", "The environment which the service was deployed to")
+	updateDeploymentCmd.Flags().BoolVarP(&delete, "delete", "d", false, "The service is no longer deployed to the environment")
+	updateDeploymentCmd.Flags().Lookup("version").NoOptDefVal = "auto"
 }

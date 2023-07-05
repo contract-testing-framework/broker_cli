@@ -38,4 +38,5 @@ type DeploymentBody struct {
 	EnvironmentName 	 string `json:"environmentName"`
 	ParticipantName 	 string `json:"participantName"`
 	ParticipantVersion string `json:"participantVersion"`
+	Deployed 					 bool 	`json:"deployed"`
 }
