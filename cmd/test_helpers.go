@@ -49,7 +49,7 @@ will be populated with the request body when a request is made.
 used for any requests with a JSON request body, even when contract
 is YAML format
 */
-func mockServerForJSONReq[T requestBody](t *testing.T) (*httptest.Server, *T) {
+func mockServerForJSONReq201Created[T requestBody](t *testing.T) (*httptest.Server, *T) {
 	var reqBody T
 
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

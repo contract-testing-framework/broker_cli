@@ -78,7 +78,7 @@ func TestPublishContractDoesNotExist(t *testing.T) {
 }
 
 func TestPublishConsumerWithoutVersionOrBranch(t *testing.T) {
-	server, reqBody := mockServerForJSONReq[ConsumerBody](t)
+	server, reqBody := mockServerForJSONReq201Created[ConsumerBody](t)
 	defer server.Close()
 
 	flags := []string{
@@ -109,7 +109,7 @@ func TestPublishConsumerWithoutVersionOrBranch(t *testing.T) {
 }
 
 func TestPublishConsumerWithVersion(t *testing.T) {
-	server, reqBody := mockServerForJSONReq[ConsumerBody](t)
+	server, reqBody := mockServerForJSONReq201Created[ConsumerBody](t)
 	defer server.Close()
 
 	flags := []string{
@@ -154,7 +154,7 @@ func TestPublishConsumerWithVersion(t *testing.T) {
 }
 
 func TestPublishProviderWithoutVersion(t *testing.T) {
-	server, reqBody := mockServerForJSONReq[ProviderBody](t)
+	server, reqBody := mockServerForJSONReq201Created[ProviderBody](t)
 	defer server.Close()
 
 	flags := []string{
@@ -204,7 +204,7 @@ func TestPublishProviderWithoutVersion(t *testing.T) {
 }
 
 func TestPublishProviderWithVersionAndBranch(t *testing.T) {
-	server, reqBody := mockServerForJSONReq[ProviderBody](t)
+	server, reqBody := mockServerForJSONReq201Created[ProviderBody](t)
 	defer server.Close()
 
 	flags := []string{
@@ -239,7 +239,7 @@ func TestPublishProviderWithVersionAndBranch(t *testing.T) {
 }
 
 func TestPublishProviderYAMLSpec(t *testing.T) {
-	server, reqBody := mockServerForJSONReq[ProviderBody](t)
+	server, reqBody := mockServerForJSONReq201Created[ProviderBody](t)
 	defer server.Close()
 
 	flags := []string{

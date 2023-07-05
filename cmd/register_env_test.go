@@ -42,7 +42,7 @@ func TestRegisterEnvNoName(t *testing.T) {
 }
 
 func TestRegisterEnvRequest(t *testing.T) {
-	server, reqBody := mockServerForJSONReq[EnvBody](t)
+	server, reqBody := mockServerForJSONReq201Created[EnvBody](t)
 	defer server.Close()
 
 	flags := []string{
