@@ -18,6 +18,8 @@ func teardown() {
 	ContractFormat = ""
 	Contract = []byte{}
 	name = ""
+	environment = ""
+	delete = false
 }
 
 type actualOut struct {
@@ -25,6 +27,11 @@ type actualOut struct {
 }
 
 func (ao actualOut) startsWith(expected string, t *testing.T) {
+	if len(ao.actual) == 0 {
+		fmt.Println("ACTUAL OUTPUT WAS EMPTY")
+		t.Error()
+	}
+
 	if ao.actual[:len(expected)] != expected {
 		fmt.Println("ACTUAL: ")
 		fmt.Println(ao.actual)
@@ -33,7 +40,7 @@ func (ao actualOut) startsWith(expected string, t *testing.T) {
 }
 
 type requestBody interface {
-	ConsumerBody | ProviderBody | EnvBody
+	ConsumerBody | ProviderBody | EnvBody | DeploymentBody
 }
 
 /*
@@ -57,6 +64,26 @@ func mockServerForJSONReq[T requestBody](t *testing.T) (*httptest.Server, *T) {
 		}
 
 		w.WriteHeader(http.StatusCreated)
+	}))
+
+	return server, &reqBody
+}
+
+func mockServerForJSONReq200OK[T requestBody](t *testing.T) (*httptest.Server, *T) {
+	var reqBody T
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Header.Get("Content-Type") != "application/json" {
+			t.Errorf("Expected Content-Type: application/json header, got: %s", r.Header.Get("Content-Type"))
+		}
+
+		decoder := json.NewDecoder(r.Body)
+		err := decoder.Decode(&reqBody)
+		if err != nil {
+			t.Error("Failed to parse request body")
+		}
+
+		w.WriteHeader(http.StatusOK)
 	}))
 
 	return server, &reqBody
