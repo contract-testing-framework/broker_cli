@@ -29,3 +29,7 @@ type ProviderBody struct {
 type HttpError struct {
 	Error string `json:"error"`
 }
+
+type EnvBody struct {
+	EnvironmentName string `json:"environmentName"`
+}
