@@ -7,7 +7,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-var path string
+var Path string
 var Type string
 var Branch string
 var ProviderName string

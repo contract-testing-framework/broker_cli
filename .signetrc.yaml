@@ -1,4 +1,4 @@
-broker-url: http://localhost:3000
+# broker-url: http://localhost:3000
 
 publish:
   type: provider

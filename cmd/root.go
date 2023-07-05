@@ -30,10 +30,10 @@ func Execute() {
 }
 
 func init() {
-	publishCmd.Flags().BoolVarP(&IgnoreConfig, "ignore-config", "i", false, "ignore config file if present")
-	publishCmd.Flags().StringVarP(&BrokerBaseURL, "broker-url", "u", "", "Scheme, domain, and port where the Signet Broker is being hosted (ex. http://localhost:3000)")
+	RootCmd.PersistentFlags().BoolVarP(&IgnoreConfig, "ignore-config", "i", false, "ignore config file if present")
+	RootCmd.PersistentFlags().StringVarP(&BrokerBaseURL, "broker-url", "u", "", "Scheme, domain, and port where the Signet Broker is being hosted (ex. http://localhost:3000)")
 
-	viper.BindPFlag("broker-url", publishCmd.Flags().Lookup("broker-url"))
+	viper.BindPFlag("broker-url", RootCmd.PersistentFlags().Lookup("broker-url"))
 }
 
 func readConfigFile() {
