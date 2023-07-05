@@ -2,6 +2,32 @@
 
 The command line interface for the Signet contract testing framework.
 
+# Installation
+
+MacOS arm64
+```bash
+curl -sLO https://github.com/contract-testing-framework/broker_cli/releases/download/v0.3.0/signet-darwin-arm64 \
+&& mv signet-darwin-arm64 signet \
+&& sudo chmod +x signet \
+&& export PATH=$PATH:$(pwd)
+```
+
+MacOS amd64 (x86-64)
+```bash
+curl -sLO https://github.com/contract-testing-framework/broker_cli/releases/download/v0.3.0/signet-darwin-amd64 \
+&& mv signet-darwin-amd64 signet \
+&& sudo chmod +x signet \
+&& export PATH=$PATH:$(pwd)
+```
+
+Linux amd64 (x86-64)
+```bash
+curl -sLO https://github.com/contract-testing-framework/broker_cli/releases/download/v0.3.0/signet-linux-amd64 \
+&& mv signet-linux-amd64 signet \
+&& sudo chmod +x signet \
+&& export PATH=$PATH:$(pwd)
+```
+
 # Docs
 
 Every signet command supports `--help` flag, for example:
@@ -120,16 +146,3 @@ In your local `go` environment:
   - upload binaries
   - click `set as latest release`
   - click `Publish release`
-
-## Install binary executables
-
-- go to the `Releases` page in the repo
-- right click on the binary for your OS/Arch and copy the link address
-- in the directory where you want to keep the binary, run `curl -sLO` followed by the link address.
-  - ex.
-
-  ```bash
-  curl -sLO https://github.com/contract-testing-framework/broker_cli/releases/download/v0.1.4/signet-darwin-arm64
-  ```
-
-- give the binary executable permissions: `chmod +x BINARY_FILE_NAME`
