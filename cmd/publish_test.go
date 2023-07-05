@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"bytes"
-	"fmt"
 	"testing"
 )
 
@@ -179,7 +178,6 @@ func TestPublishProviderWithoutVersion(t *testing.T) {
 	})
 
 	t.Run("does not have providerVersion", func(t *testing.T) {
-		fmt.Println(reqBody.ProviderVersion)
 		if len(reqBody.ProviderVersion) != 0 {
 			t.Error()
 		}
@@ -226,7 +224,6 @@ func TestPublishProviderWithVersionAndBranch(t *testing.T) {
 	})
 
 	t.Run("has correct providerVersion", func(t *testing.T) {
-		fmt.Println(reqBody.ProviderVersion)
 		if reqBody.ProviderVersion != "version1" {
 			t.Error()
 		}
@@ -266,7 +263,6 @@ func TestPublishProviderYAMLSpec(t *testing.T) {
 	})
 
 	t.Run("does not have providerVersion", func(t *testing.T) {
-		fmt.Println(reqBody.ProviderVersion)
 		if len(reqBody.ProviderVersion) != 0 {
 			t.Error()
 		}

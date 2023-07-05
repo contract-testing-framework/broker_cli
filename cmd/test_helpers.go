@@ -33,7 +33,7 @@ func (ao actualOut) startsWith(expected string, t *testing.T) {
 }
 
 type requestBody interface {
-	ConsumerBody | ProviderBody
+	ConsumerBody | ProviderBody | EnvBody
 }
 
 /*

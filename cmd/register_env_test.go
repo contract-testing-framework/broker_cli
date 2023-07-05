@@ -40,3 +40,27 @@ func TestRegisterEnvNoName(t *testing.T) {
 	actual.startsWith(expected, t)
 	teardown()
 }
+
+func TestRegisterEnvRequest(t *testing.T) {
+	server, reqBody := mockServerForJSONReq[EnvBody](t)
+	defer server.Close()
+
+	flags := []string{
+		"--broker-url", server.URL,
+		"--name=production",
+	}
+	actual := callRegisterEnv(flags)
+
+	t.Run("prints nothing to stdout", func(t *testing.T) {
+		if actual.actual != "" {
+			t.Error()
+		}
+	})
+
+	t.Run("has correct environmentName", func(t *testing.T) {
+		if reqBody.EnvironmentName != "production" {
+			t.Error()
+		}
+	})
+	teardown()
+}
