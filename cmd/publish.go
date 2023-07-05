@@ -22,21 +22,21 @@ var publishCmd = &cobra.Command{
 
 	flags:
 
-	-i --ignore-config  ingore .signetrc.yaml file if it exists
-	
 	-p --path           the relative path to the contract or spec
-	
-	-u --broker-url     the scheme, domain, and port where the Signet Broker is being hosted (ex. http://localhost:3000)
 	
 	-t -—type           the type of service contract (either 'consumer' or 'provider')
 	
 	-n -—provider-name  canonical name of the provider service (only for —-type 'provider')
 	
 	-v -—version        service version (required for --type 'consumer')
-											-—type=consumer: if flag not passed or passed without value, defaults to the git SHA of HEAD
-											-—type=provider: if the flag passed without value, defaults to git SHA
+	-—type=consumer: if flag not passed or passed without value, defaults to the git SHA of HEAD
+	-—type=provider: if the flag passed without value, defaults to git SHA
 	
 	-b -—branch         git branch name (optional, defaults to current git branch)
+
+	-u --broker-url     the scheme, domain, and port where the Signet Broker is being hosted (ex. http://localhost:3000)
+
+	-i --ignore-config  ingore .signetrc.yaml file if it exists
 `,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		// get flag values from config file if not passed in on command line

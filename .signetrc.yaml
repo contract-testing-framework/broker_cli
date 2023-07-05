@@ -4,3 +4,6 @@ publish:
   type: provider
   path: ./data_test/api-spec.json
   provider-name: user_service
+
+update-deployment:
+  name: user_service

@@ -2,18 +2,10 @@
 
 The command line interface for the Signet contract testing framework.
 
-## Cloning the repo
-
-In your local *go* environment:
-
-- Create a directory structure like this:
-  `$GOPATH/src/github.com/contract-testing-framework`
-- `cd` into `contract-testing-framework`
-- `git clone` the repo
-- `cd` into `broker_cli`
-
 # Docs
-------------
+
+Every signet command supports `--help` flag, for example:
+`signet publish --help`
 
 ## `signet publish`
 
@@ -22,21 +14,21 @@ In your local *go* environment:
 ```bash
 flags:
 
--i --ignore-config  ingore .signetrc.yaml file if it exists
-
 -p --path           the relative path to the contract or spec
-
--u --broker-url     the scheme, domain, and port where the Signet Broker is being hosted (ex. http://localhost:3000)
 
 -t -—type           the type of service contract (either 'consumer' or 'provider')
 
 -n -—provider-name  canonical name of the provider service (only for —-type 'provider')
 
 -v -—version        service version (required for --type 'consumer')
-                    -—type=consumer: if flag not passed or passed without value, defaults to the git SHA of HEAD
-                    -—type=provider: if the flag passed without value, defaults to git SHA
+-—type=consumer: if flag not passed or passed without value, defaults to the git SHA of HEAD
+-—type=provider: if the flag passed without value, defaults to git SHA
 
 -b -—branch         git branch name (optional, defaults to current git branch)
+
+-u --broker-url     the scheme, domain, and port where the Signet Broker is being hosted (ex. http://localhost:3000)
+
+-i --ignore-config  ingore .signetrc.yaml file if it exists
 ```
 
 - if a `.signetrc.yaml` file is present in the root directory, the broker_cli will read values for flags from it. Any flags which are explicitly passed on the command line will override the values in `.signetrc.yaml`.
@@ -60,10 +52,6 @@ publish:
   provider-name: user_service
 ```
 
-#### Publishing a Contract (development)
-
-`go run main.go publish --help` lists required flags
-
 #### Publishing a Consumer Contract (binary - with explicit flags)
 
 ```bash
@@ -76,22 +64,49 @@ signet publish --path=./data_test/cons-prov.json --broker-url=http://localhost:3
 signet publish --path=./data_test/api-spec.yaml --broker-url=http://localhost:3000 --type provider --provider-name example-provider
 ```
 
-## `signet register-env`
+## `signet update-deployment`
 
-- The `register-env` command informs the Signet broker about a deployment environment. This is a prerequisite for allowing to the Signet broker to keep track of which versions of each service are
-currently deployed to which environment.
+- The `update-deployment` command informs the Signet broker of which service versions are currently deployed in an environment. If broker does not already know about the `--environment`, it will create it.
 
 ```bash
 flags:
 
--n --name           the name of the deployment environment being registered (ex. production)
+-n --name           the name of the service
 
--i --ignore-config  ingore .signetrc.yaml file if it exists
+-v --version        the version of the service
+
+-e --environment    the name of the environment that the service is deployed to (ex. production)
+
+-d --delete         the presence of this flag inidicates that the service is no longer deployed to the environment
 
 -u --broker-url     the scheme, domain, and port where the Signet Broker is being hosted (ex. http://localhost:3000)
+
+-i --ignore-config  ingore .signetrc.yaml file if it exists
+```
+- `.signetrc.yaml` supports these flags for `update-deployment`:
+```yaml
+broker-url: http://localhost:3000
+
+update-deployment:
+  name: user_service
 ```
 
-# Other Development Details
+# Development Details
+## Cloning the repo
+
+In your local `go` environment:
+
+- Create a directory structure like this:
+  `$GOPATH/src/github.com/contract-testing-framework`
+- `cd` into `contract-testing-framework`
+- `git clone` the repo
+- `cd` into `broker_cli`
+
+## Run the CLI in development
+`go run main.go [cmd]`
+
+## Run the test suite
+`make test`
 ## Release updated binaries
 
 - build new binaries with `make build`

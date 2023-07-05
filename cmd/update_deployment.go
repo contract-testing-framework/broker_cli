@@ -5,9 +5,9 @@ import (
 	"encoding/json"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
-// var version string
 var environment string
 var delete bool
 
@@ -26,11 +26,13 @@ var updateDeploymentCmd = &cobra.Command{
 
 	-d --delete         the presence of this flag inidicates that the service is no longer deployed to the environment
 
-	-i --ignore-config  ingore .signetrc.yaml file if it exists
-	
 	-u --broker-url     the scheme, domain, and port where the Signet Broker is being hosted (ex. http://localhost:3000)
+	
+	-i --ignore-config  ingore .signetrc.yaml file if it exists
 	`,
 	RunE: func(cmd *cobra.Command, args []string) error {
+		name = viper.GetString("update-deployment.name")
+
 		if len(BrokerBaseURL) == 0 {
 			return errors.New("No --broker-url was provided. This is a required flag.")
 		}
@@ -76,4 +78,6 @@ func init() {
 	updateDeploymentCmd.Flags().StringVarP(&environment, "environment", "e", "", "The environment which the service was deployed to")
 	updateDeploymentCmd.Flags().BoolVarP(&delete, "delete", "d", false, "The service is no longer deployed to the environment")
 	updateDeploymentCmd.Flags().Lookup("version").NoOptDefVal = "auto"
+
+	viper.BindPFlag("update-deployment.name", updateDeploymentCmd.Flags().Lookup("name"))
 }
