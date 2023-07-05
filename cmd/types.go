@@ -33,3 +33,9 @@ type HttpError struct {
 type EnvBody struct {
 	EnvironmentName string `json:"environmentName"`
 }
+
+type DeploymentBody struct {
+	EnvironmentName 	 string `json:"environmentName"`
+	ParticipantName 	 string `json:"participantName"`
+	ParticipantVersion string `json:"participantVersion"`
+}

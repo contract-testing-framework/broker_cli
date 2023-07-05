@@ -51,3 +51,43 @@ func RegisterEnvWithBroker(brokerURL string, jsonData []byte) error {
 	}
 	return nil
 }
+
+func RegisterDeploymentWithBroker(brokerURL string, jsonData []byte) error {
+	resp, err := http.Post(brokerURL, "application/json", bytes.NewBuffer(jsonData))
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != 201 {
+		var respBody HttpError
+		err = json.NewDecoder(resp.Body).Decode(&respBody)
+		if err != nil {
+			return err
+		}
+
+		fmt.Printf("Status code: %v\n", resp.Status)
+		log.Fatal(respBody.Error)
+	}
+	return nil
+}
+
+func DeleteDeploymentFromBroker(brokerURL string, jsonData []byte) error {
+	resp, err := http.NewRequest("DELETE", brokerURL, "application/json", bytes.NewBuffer(jsonData))
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != 201 {
+		var respBody HttpError
+		err = json.NewDecoder(resp.Body).Decode(&respBody)
+		if err != nil {
+			return err
+		}
+
+		fmt.Printf("Status code: %v\n", resp.Status)
+		log.Fatal(respBody.Error)
+	}
+	return nil
+}

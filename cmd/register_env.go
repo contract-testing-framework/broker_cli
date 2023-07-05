@@ -7,8 +7,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var name string
-
 var registerEnvCmd = &cobra.Command{
 	Use:   "register-env",
 	Short: "register a new deployment environment",
