@@ -98,7 +98,7 @@ func SetVersionToGitSha() error {
 	cmd := exec.Command("git", "rev-parse", "--short=10", "HEAD")
 	gitSHA, err := cmd.Output()
 	if err != nil {
-		return errors.New("because this directory is not a git repository, --version cannot default to git commit SHA. --version must be set in order to publish a consumer contract")
+		return errors.New("because this directory is not a git repository, --version cannot default to git commit SHA. --version must be set for this command.")
 	}
 	if len(gitSHA) != 0 {
 		gitSHA = gitSHA[:len(gitSHA)-1]

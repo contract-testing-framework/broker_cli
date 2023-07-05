@@ -53,7 +53,7 @@ func RegisterEnvWithBroker(brokerURL string, jsonData []byte) error {
 }
 
 func UpdateDeploymentWithBroker(brokerURL string, jsonData []byte) error {
-	req, err := http.NewRequest(http.MethodPut, brokerURL, bytes.NewBuffer(jsonData))
+	req, err := http.NewRequest(http.MethodPatch, brokerURL, bytes.NewBuffer(jsonData))
 	if err != nil {
 		return err
 	}
@@ -67,7 +67,7 @@ func UpdateDeploymentWithBroker(brokerURL string, jsonData []byte) error {
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode != 201 {
+	if resp.StatusCode != 200 {
 		var respBody HttpError
 		err = json.NewDecoder(resp.Body).Decode(&respBody)
 		if err != nil {

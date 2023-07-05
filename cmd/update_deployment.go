@@ -7,7 +7,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var version string
+// var version string
 var environment string
 var delete bool
 
@@ -39,7 +39,7 @@ var updateDeploymentCmd = &cobra.Command{
 			return errors.New("No --name was provided. A value for this flag is required.")
 		}
 
-		if version == "" || version == "auto" {
+		if Version == "" || Version == "auto" {
 			SetVersionToGitSha()
 		}
 
@@ -50,7 +50,7 @@ var updateDeploymentCmd = &cobra.Command{
 		requestBody := DeploymentBody{
 			EnvironmentName: environment,
 			ParticipantName: name,
-			ParticipantVersion: version,
+			ParticipantVersion: Version,
 			Deployed: !delete,
 		}
 
@@ -72,7 +72,7 @@ func init() {
 	RootCmd.AddCommand(updateDeploymentCmd)
 
 	updateDeploymentCmd.Flags().StringVarP(&name, "name", "n", "", "The name of the service which was deployed")
-	updateDeploymentCmd.Flags().StringVarP(&version, "version", "v", "", "The version of the service which was deployed")
+	updateDeploymentCmd.Flags().StringVarP(&Version, "version", "v", "", "The version of the service which was deployed")
 	updateDeploymentCmd.Flags().StringVarP(&environment, "environment", "e", "", "The environment which the service was deployed to")
 	updateDeploymentCmd.Flags().BoolVarP(&delete, "delete", "d", false, "The service is no longer deployed to the environment")
 	updateDeploymentCmd.Flags().Lookup("version").NoOptDefVal = "auto"
