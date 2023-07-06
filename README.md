@@ -8,7 +8,7 @@ MacOS arm64
 ```bash
 curl -sLO https://github.com/contract-testing-framework/broker_cli/releases/download/v0.3.0/signet-darwin-arm64 \
 && mv signet-darwin-arm64 signet \
-&& sudo chmod +x signet \
+&& chmod +x signet \
 && export PATH=$PATH:$(pwd)
 ```
 
@@ -16,7 +16,7 @@ MacOS amd64 (x86-64)
 ```bash
 curl -sLO https://github.com/contract-testing-framework/broker_cli/releases/download/v0.3.0/signet-darwin-amd64 \
 && mv signet-darwin-amd64 signet \
-&& sudo chmod +x signet \
+&& chmod +x signet \
 && export PATH=$PATH:$(pwd)
 ```
 
@@ -24,7 +24,7 @@ Linux amd64 (x86-64)
 ```bash
 curl -sLO https://github.com/contract-testing-framework/broker_cli/releases/download/v0.3.0/signet-linux-amd64 \
 && mv signet-linux-amd64 signet \
-&& sudo chmod +x signet \
+&& chmod +x signet \
 && export PATH=$PATH:$(pwd)
 ```
 
