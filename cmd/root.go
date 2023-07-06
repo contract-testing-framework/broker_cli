@@ -10,7 +10,11 @@ import (
 
 var IgnoreConfig bool
 var BrokerBaseURL string
-var name string
+var Path string
+var Name string
+var ProviderName string
+var Version string
+var Branch string
 
 // rootCmd represents the base command when called without any subcommands
 var RootCmd = &cobra.Command{

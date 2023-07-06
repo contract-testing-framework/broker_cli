@@ -1,4 +1,4 @@
-package cmd
+package client
 
 import (
 	"net/http"
@@ -7,6 +7,10 @@ import (
 	"fmt"
 	"log"
 )
+
+type HttpError struct {
+	Error string `json:"error"`
+}
 
 func PublishToBroker(brokerURL string, jsonData []byte) error {
 	resp, err := http.Post(brokerURL, "application/json", bytes.NewBuffer(jsonData))
