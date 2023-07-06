@@ -3,6 +3,8 @@ package cmd
 import (
 	"testing"
 	"bytes"
+
+	internal "github.com/contract-testing-framework/broker_cli/internal"
 )
 
 /* ------------- helpers ------------- */
@@ -42,7 +44,7 @@ func TestRegisterEnvNoName(t *testing.T) {
 }
 
 func TestRegisterEnvRequest(t *testing.T) {
-	server, reqBody := mockServerForJSONReq201Created[EnvBody](t)
+	server, reqBody := mockServerForJSONReq201Created[internal.EnvBody](t)
 	defer server.Close()
 
 	flags := []string{

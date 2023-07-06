@@ -1,4 +1,4 @@
-package cmd
+package internal
 
 import (
 	"encoding/json"
@@ -6,9 +6,11 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+
+	client "github.com/contract-testing-framework/broker_cli/client"
 )
 
-func ValidType() error {
+func ValidType(Type string) error {
 	if Type != "consumer" && Type != "provider" {
 		if len(Type) == 0 {
 			Type = "not set"
@@ -94,41 +96,47 @@ func CreateProviderRequestBody(spec interface{}, providerName string, providerVe
 	return jsonData, nil
 }
 
-func SetVersionToGitSha() error {
+func SetVersionToGitSha(version string) (string, error) {
 	cmd := exec.Command("git", "rev-parse", "--short=10", "HEAD")
 	gitSHA, err := cmd.Output()
 	if err != nil {
-		return errors.New("because this directory is not a git repository, --version cannot default to git commit SHA. --version must be set for this command.")
+		return "", errors.New("because this directory is not a git repository, --version cannot default to git commit SHA. --version must be set for this command.")
 	}
 	if len(gitSHA) != 0 {
 		gitSHA = gitSHA[:len(gitSHA)-1]
 	}
 
-	Version = string(gitSHA)
-	return nil
+	return string(gitSHA), nil
 }
 
-func SetBranchToCurrentGit() error {
+func SetBranchToCurrentGit(branch string) (string, error) {
 	cmd := exec.Command("git", "branch", "--show-current")
 	currentBranch, err := cmd.Output()
 	if err != nil {
-		return errors.New("because this directory is not a git repository, --branch cannot default to current git branch")
+		return "", errors.New("because this directory is not a git repository, --branch cannot default to current git branch")
 	}
 	if len(currentBranch) != 0 {
 		currentBranch = currentBranch[:len(currentBranch)-1]
 	}
 
-	Branch = string(currentBranch)
-	return nil
+	return string(currentBranch), nil
 }
 
-func PublishConsumer(path string, brokerBaseUrl string) error {
+func PublishConsumer(path string, brokerBaseUrl string, Version, Branch string) error {
 	if Branch == "auto" || (Branch == "" && (Version == "auto" || Version == "")) {
-		SetBranchToCurrentGit()
+		var err error
+		Branch, err = SetBranchToCurrentGit(Branch)
+		if err != nil {
+			return err
+		}
 	}
 
 	if Version == "" || Version == "auto" {
-		SetVersionToGitSha()
+		var err error
+		Version, err = SetVersionToGitSha(Version)
+		if err != nil {
+			return err
+		}
 	}
 
 	contract, err := LoadContract(path)
@@ -147,7 +155,7 @@ func PublishConsumer(path string, brokerBaseUrl string) error {
 		return err
 	}
 
-	err = PublishToBroker(brokerBaseUrl+"/api/contracts", requestBody)
+	err = client.PublishToBroker(brokerBaseUrl+"/api/contracts", requestBody)
 	if err != nil {
 		return err
 	}
@@ -155,17 +163,21 @@ func PublishConsumer(path string, brokerBaseUrl string) error {
 	return nil
 }
 
-func PublishProvider(path string, brokerBaseUrl string) error {
+func PublishProvider(path string, brokerBaseUrl string, ProviderName, Version, Branch string) error {
 	if len(ProviderName) == 0 {
 		return errors.New("must set --provider-name if --type is \"provider\"")
 	}
 
 	if Branch == "auto" || (Branch == "" && Version == "auto") {
-		SetBranchToCurrentGit()
+		var err error
+		Branch, err = SetBranchToCurrentGit(Branch)
+		if err != nil {
+			return err
+		}
 	}
 
 	if Version == "auto" {
-		SetVersionToGitSha()
+		SetVersionToGitSha(Version)
 	}
 
 	spec, specFormat, err := LoadSpec(path)
@@ -178,7 +190,7 @@ func PublishProvider(path string, brokerBaseUrl string) error {
 		return err
 	}
 
-	err = PublishToBroker(brokerBaseUrl+"/api/specs", requestBody)
+	err = client.PublishToBroker(brokerBaseUrl+"/api/specs", requestBody)
 	if err != nil {
 		return err
 	}

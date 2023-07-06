@@ -3,6 +3,8 @@ package cmd
 import (
 	"testing"
 	"bytes"
+
+	internal "github.com/contract-testing-framework/broker_cli/internal"
 )
 
 /* ------------- helpers ------------- */
@@ -59,7 +61,7 @@ func TestUpdateDeploymentNoEnvironment(t *testing.T) {
 }
 
 func TestUpdateDeploymentRequest(t *testing.T) {
-	server, reqBody := mockServerForJSONReq200OK[DeploymentBody](t)
+	server, reqBody := mockServerForJSONReq200OK[internal.DeploymentBody](t)
 	defer server.Close()
 
 	flags := []string{
@@ -103,7 +105,7 @@ func TestUpdateDeploymentRequest(t *testing.T) {
 }
 
 func TestUpdateDeploymentRequestNoVersion(t *testing.T) {
-	server, reqBody := mockServerForJSONReq200OK[DeploymentBody](t)
+	server, reqBody := mockServerForJSONReq200OK[internal.DeploymentBody](t)
 	defer server.Close()
 
 	flags := []string{
@@ -128,7 +130,7 @@ func TestUpdateDeploymentRequestNoVersion(t *testing.T) {
 }
 
 func TestUpdateDeploymentRequestWithDelete(t *testing.T) {
-	server, reqBody := mockServerForJSONReq200OK[DeploymentBody](t)
+	server, reqBody := mockServerForJSONReq200OK[internal.DeploymentBody](t)
 	defer server.Close()
 
 	flags := []string{

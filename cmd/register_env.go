@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 
 	"github.com/spf13/cobra"
+	client "github.com/contract-testing-framework/broker_cli/client"
+	internal "github.com/contract-testing-framework/broker_cli/internal"
 )
 
 var registerEnvCmd = &cobra.Command{
@@ -25,18 +27,18 @@ var registerEnvCmd = &cobra.Command{
 			return errors.New("No --broker-url was provided. This is a required flag.")
 		}
 
-		if len(name) == 0 {
+		if len(Name) == 0 {
 			return errors.New("No --name was provided. A value for this flag is required.")
 		}
 
-		requestBody := EnvBody{name}
+		requestBody := internal.EnvBody{Name}
 
 		jsonData, err := json.Marshal(requestBody)
 		if err != nil {
 			return err
 		}
 
-		err = RegisterEnvWithBroker(BrokerBaseURL+"/api/environments", jsonData)
+		err = client.RegisterEnvWithBroker(BrokerBaseURL+"/api/environments", jsonData)
 		if err != nil {
 			return err
 		}
@@ -48,5 +50,5 @@ var registerEnvCmd = &cobra.Command{
 func init() {
 	RootCmd.AddCommand(registerEnvCmd)
 
-	registerEnvCmd.Flags().StringVarP(&name, "name", "n", "", "The name of the deployment environment being registered")
+	registerEnvCmd.Flags().StringVarP(&Name, "name", "n", "", "The name of the deployment environment being registered")
 }

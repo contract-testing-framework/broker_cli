@@ -1,4 +1,4 @@
-package cmd
+package internal
 
 type Consumer struct {
 	Name string `json:"name"`
@@ -24,10 +24,6 @@ type ProviderBody struct {
 	ProviderVersion string      `json:"providerVersion"`
 	ProviderBranch  string      `json:"providerBranch"`
 	SpecFormat      string      `json:"specFormat"`
-}
-
-type HttpError struct {
-	Error string `json:"error"`
 }
 
 type EnvBody struct {

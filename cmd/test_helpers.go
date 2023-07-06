@@ -6,6 +6,8 @@ import (
 	"net/http/httptest"
 	"testing"
 	"fmt"
+
+	internal "github.com/contract-testing-framework/broker_cli/internal"
 )
 
 func teardown() {
@@ -17,9 +19,9 @@ func teardown() {
 	Version = ""
 	ContractFormat = ""
 	Contract = []byte{}
-	name = ""
-	environment = ""
-	delete = false
+	Name = ""
+	Environment = ""
+	Delete = false
 }
 
 type actualOut struct {
@@ -40,7 +42,7 @@ func (ao actualOut) startsWith(expected string, t *testing.T) {
 }
 
 type requestBody interface {
-	ConsumerBody | ProviderBody | EnvBody | DeploymentBody
+	internal.ConsumerBody | internal.ProviderBody | internal.EnvBody | internal.DeploymentBody
 }
 
 /*
