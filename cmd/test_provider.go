@@ -36,7 +36,7 @@ var testCmd = &cobra.Command{
 		shcmd := exec.Command("npm", "root", "-g")
 		outBytes, err := shcmd.CombinedOutput()
 		if err != nil {
-			fmt.Println("47 erred")
+			fmt.Println("39 erred")
 			return err
 		}
 		
@@ -47,7 +47,7 @@ var testCmd = &cobra.Command{
 		shcmd2 := exec.Command("npx", dreddPath)
 		outBytes, err = shcmd2.CombinedOutput()
 		if err != nil {
-			fmt.Println("53 erred")
+			fmt.Println("50 erred")
 			return err
 		}
 
