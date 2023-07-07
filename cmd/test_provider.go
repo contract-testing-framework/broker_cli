@@ -46,12 +46,12 @@ var testCmd = &cobra.Command{
 
 		shcmd2 := exec.Command("npx", dreddPath)
 		outBytes, err = shcmd2.CombinedOutput()
+		fmt.Println(string(outBytes))
+
 		if err != nil {
 			fmt.Println("50 erred")
 			return err
 		}
-
-		fmt.Println(string(outBytes))
 
 		// name = viper.GetString("test.name")
 		// ProviderURL = viper.GetString("test.provider-url")
