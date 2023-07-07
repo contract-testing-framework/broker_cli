@@ -36,7 +36,7 @@ var testCmd = &cobra.Command{
 		shcmd := exec.Command("npm", "root", "-g")
 		outBytes, err := shcmd.CombinedOutput()
 		if err != nil {
-			fmt.Println("39 erred")
+			fmt.Println("could not find npm root")
 			return err
 		}
 		
@@ -46,10 +46,10 @@ var testCmd = &cobra.Command{
 
 		shcmd2 := exec.Command("npx", dreddPath)
 		outBytes, err = shcmd2.CombinedOutput()
-		fmt.Println(string(outBytes))
 
+		fmt.Println(string(outBytes))
 		if err != nil {
-			fmt.Println("50 erred")
+			fmt.Println("npx .../dredd exited with status code 1")
 			return err
 		}
 
