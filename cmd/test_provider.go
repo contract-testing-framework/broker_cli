@@ -9,7 +9,7 @@ import (
 	"github.com/spf13/viper"
 
 	client "github.com/contract-testing-framework/broker_cli/client"
-	internal "github.com/contract-testing-framework/broker_cli/internal"
+	utils "github.com/contract-testing-framework/broker_cli/utils"
 )
 
 var ProviderURL string
@@ -45,7 +45,7 @@ var testCmd = &cobra.Command{
 
 		if version == "" || version == "auto" {
 			var err error
-			version, err = internal.SetVersionToGitSha(version)
+			version, err = utils.SetVersionToGitSha(version)
 			if err != nil {
 				return err
 			}

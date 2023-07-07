@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"testing"
 
-	internal "github.com/contract-testing-framework/broker_cli/internal"
+	utils "github.com/contract-testing-framework/broker_cli/utils"
 )
 
 /* ------------- helpers ------------- */
@@ -80,7 +80,7 @@ func TestPublishContractDoesNotExist(t *testing.T) {
 }
 
 func TestPublishConsumerWithoutVersionOrBranch(t *testing.T) {
-	server, reqBody := mockServerForJSONReq201Created[internal.ConsumerBody](t)
+	server, reqBody := mockServerForJSONReq201Created[utils.ConsumerBody](t)
 	defer server.Close()
 
 	flags := []string{
@@ -111,7 +111,7 @@ func TestPublishConsumerWithoutVersionOrBranch(t *testing.T) {
 }
 
 func TestPublishConsumerWithVersion(t *testing.T) {
-	server, reqBody := mockServerForJSONReq201Created[internal.ConsumerBody](t)
+	server, reqBody := mockServerForJSONReq201Created[utils.ConsumerBody](t)
 	defer server.Close()
 
 	flags := []string{
@@ -156,7 +156,7 @@ func TestPublishConsumerWithVersion(t *testing.T) {
 }
 
 func TestPublishProviderWithoutVersion(t *testing.T) {
-	server, reqBody := mockServerForJSONReq201Created[internal.ProviderBody](t)
+	server, reqBody := mockServerForJSONReq201Created[utils.ProviderBody](t)
 	defer server.Close()
 
 	flags := []string{
@@ -206,7 +206,7 @@ func TestPublishProviderWithoutVersion(t *testing.T) {
 }
 
 func TestPublishProviderWithVersionAndBranch(t *testing.T) {
-	server, reqBody := mockServerForJSONReq201Created[internal.ProviderBody](t)
+	server, reqBody := mockServerForJSONReq201Created[utils.ProviderBody](t)
 	defer server.Close()
 
 	flags := []string{
@@ -241,7 +241,7 @@ func TestPublishProviderWithVersionAndBranch(t *testing.T) {
 }
 
 func TestPublishProviderYAMLSpec(t *testing.T) {
-	server, reqBody := mockServerForJSONReq201Created[internal.ProviderBody](t)
+	server, reqBody := mockServerForJSONReq201Created[utils.ProviderBody](t)
 	defer server.Close()
 
 	flags := []string{

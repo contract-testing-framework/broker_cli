@@ -8,7 +8,7 @@ import (
 	"github.com/spf13/viper"
 
 	client "github.com/contract-testing-framework/broker_cli/client"
-	internal "github.com/contract-testing-framework/broker_cli/internal"
+	utils "github.com/contract-testing-framework/broker_cli/utils"
 )
 
 var environment string
@@ -46,7 +46,7 @@ var updateDeploymentCmd = &cobra.Command{
 
 		if version == "" || version == "auto" {
 			var err error
-			version, err = internal.SetVersionToGitSha(version)
+			version, err = utils.SetVersionToGitSha(version)
 			if err != nil {
 				return err
 			}
@@ -56,7 +56,7 @@ var updateDeploymentCmd = &cobra.Command{
 			return errors.New("No --environment was provided. A value for this flag is required.")
 		}
 
-		requestBody := internal.DeploymentBody{
+		requestBody := utils.DeploymentBody{
 			EnvironmentName: environment,
 			ParticipantName: name,
 			ParticipantVersion: version,

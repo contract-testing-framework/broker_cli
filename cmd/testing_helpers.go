@@ -7,7 +7,7 @@ import (
 	"testing"
 	"fmt"
 
-	internal "github.com/contract-testing-framework/broker_cli/internal"
+	utils "github.com/contract-testing-framework/broker_cli/utils"
 )
 
 func teardown() {
@@ -42,7 +42,7 @@ func (ao actualOut) startsWith(expected string, t *testing.T) {
 }
 
 type requestBody interface {
-	internal.ConsumerBody | internal.ProviderBody | internal.EnvBody | internal.DeploymentBody
+	utils.ConsumerBody | utils.ProviderBody | utils.EnvBody | utils.DeploymentBody
 }
 
 /*
