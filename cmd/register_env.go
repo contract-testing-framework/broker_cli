@@ -23,22 +23,22 @@ var registerEnvCmd = &cobra.Command{
 	-u --broker-url     the scheme, domain, and port where the Signet Broker is being hosted (ex. http://localhost:3000)
 	`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		if len(BrokerBaseURL) == 0 {
+		if len(brokerURL) == 0 {
 			return errors.New("No --broker-url was provided. This is a required flag.")
 		}
 
-		if len(Name) == 0 {
+		if len(name) == 0 {
 			return errors.New("No --name was provided. A value for this flag is required.")
 		}
 
-		requestBody := internal.EnvBody{Name}
+		requestBody := internal.EnvBody{name}
 
 		jsonData, err := json.Marshal(requestBody)
 		if err != nil {
 			return err
 		}
 
-		err = client.RegisterEnvWithBroker(BrokerBaseURL+"/api/environments", jsonData)
+		err = client.RegisterEnvWithBroker(brokerURL, jsonData)
 		if err != nil {
 			return err
 		}
@@ -50,5 +50,5 @@ var registerEnvCmd = &cobra.Command{
 func init() {
 	RootCmd.AddCommand(registerEnvCmd)
 
-	registerEnvCmd.Flags().StringVarP(&Name, "name", "n", "", "The name of the deployment environment being registered")
+	registerEnvCmd.Flags().StringVarP(&name, "name", "n", "", "The name of the deployment environment being registered")
 }

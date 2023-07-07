@@ -9,9 +9,10 @@ import (
 	internal "github.com/contract-testing-framework/broker_cli/internal"
 )
 
-var Type string
-var ContractFormat string
-var Contract []byte
+var serviceType string
+var providerName string
+var contractFormat string
+var contract []byte
 
 var publishCmd = &cobra.Command{
 	Use:   "publish",
@@ -38,30 +39,30 @@ var publishCmd = &cobra.Command{
 `,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		// get flag values from config file if not passed in on command line
-		Path = viper.GetString("publish.path")
-		Type = viper.GetString("publish.type")
-		ProviderName = viper.GetString("publish.provider-name")
+		path = viper.GetString("publish.path")
+		serviceType = viper.GetString("publish.type")
+		providerName = viper.GetString("publish.provider-name")
 
-		if len(Path) == 0 {
+		if len(path) == 0 {
 			return errors.New("No --path to a contract/spec was provided. This is a required flag.")
 		}
 
-		if len(BrokerBaseURL) == 0 {
+		if len(brokerURL) == 0 {
 			return errors.New("No --broker-url was provided. This is a required flag.")
 		}
 
-		err := internal.ValidType(Type)
+		err := internal.ValidType(serviceType)
 		if err != nil {
 			return err
 		}
 
-		if Type == "consumer" {
-			err = internal.PublishConsumer(Path, BrokerBaseURL, Version, Branch)
+		if serviceType == "consumer" {
+			err = internal.PublishConsumer(path, brokerURL, version, branch)
 			if err != nil {
 				return err
 			}
 		} else {
-			err = internal.PublishProvider(Path, BrokerBaseURL, ProviderName, Version, Branch)
+			err = internal.PublishProvider(path, brokerURL, providerName, version, branch)
 			if err != nil {
 				return err
 			}
@@ -74,11 +75,11 @@ var publishCmd = &cobra.Command{
 func init() {
 	RootCmd.AddCommand(publishCmd)
 
-	publishCmd.Flags().StringVarP(&Path, "path", "p", "", "Relative path from the root directory to the contract or spec file")
-	publishCmd.Flags().StringVarP(&Type, "type", "t", "", "Type of the participant (\"consumer\" or \"provider\")")
-	publishCmd.Flags().StringVarP(&Branch, "branch", "b", "", "Version control branch (optional)")
-	publishCmd.Flags().StringVarP(&ProviderName, "provider-name", "n", "", "The name of the provider service (required if --type is \"provider\")")
-	publishCmd.Flags().StringVarP(&Version, "version", "v", "", "The version of the service (Defaults to git SHA)")
+	publishCmd.Flags().StringVarP(&path, "path", "p", "", "Relative path from the root directory to the contract or spec file")
+	publishCmd.Flags().StringVarP(&serviceType, "type", "t", "", "Type of the participant (\"consumer\" or \"provider\")")
+	publishCmd.Flags().StringVarP(&branch, "branch", "b", "", "Version control branch (optional)")
+	publishCmd.Flags().StringVarP(&providerName, "provider-name", "n", "", "The name of the provider service (required if --type is \"provider\")")
+	publishCmd.Flags().StringVarP(&version, "version", "v", "", "The version of the service (Defaults to git SHA)")
 	publishCmd.Flags().Lookup("version").NoOptDefVal = "auto"
 	publishCmd.Flags().Lookup("branch").NoOptDefVal = "auto"
 

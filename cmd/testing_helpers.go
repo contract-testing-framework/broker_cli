@@ -11,17 +11,17 @@ import (
 )
 
 func teardown() {
-	Type = ""
-	Path = ""
-	BrokerBaseURL = ""
-	Branch = ""
-	ProviderName = ""
-	Version = ""
-	ContractFormat = ""
-	Contract = []byte{}
-	Name = ""
-	Environment = ""
-	Delete = false
+	serviceType = ""
+	path = ""
+	brokerURL = ""
+	branch = ""
+	providerName = ""
+	version = ""
+	contractFormat = ""
+	contract = []byte{}
+	name = ""
+	environment = ""
+	delete = false
 }
 
 type actualOut struct {

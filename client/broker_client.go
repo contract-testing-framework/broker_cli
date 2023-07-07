@@ -8,9 +8,26 @@ import (
 	"log"
 )
 
+/* ---------- client helpers ---------- */
+
 type HttpError struct {
 	Error string `json:"error"`
 }
+
+func logHTTPErrorThenExit(resp *http.Response) error {
+	var respBody HttpError
+	err := json.NewDecoder(resp.Body).Decode(&respBody)
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("Status code: %v\n", resp.Status)
+	log.Fatal(respBody.Error)
+
+	return nil
+}
+
+/* ---------- client pkg ---------- */
 
 func PublishToBroker(brokerURL string, jsonData []byte) error {
 	resp, err := http.Post(brokerURL, "application/json", bytes.NewBuffer(jsonData))
@@ -37,27 +54,23 @@ func PublishToBroker(brokerURL string, jsonData []byte) error {
 }
 
 func RegisterEnvWithBroker(brokerURL string, jsonData []byte) error {
-	resp, err := http.Post(brokerURL, "application/json", bytes.NewBuffer(jsonData))
+	resp, err := http.Post(brokerURL + "/api/environments", "application/json", bytes.NewBuffer(jsonData))
 	if err != nil {
 		return err
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != 201 {
-		var respBody HttpError
-		err = json.NewDecoder(resp.Body).Decode(&respBody)
+		err = logHTTPErrorThenExit(resp)
 		if err != nil {
 			return err
 		}
-
-		fmt.Printf("Status code: %v\n", resp.Status)
-		log.Fatal(respBody.Error)
 	}
 	return nil
 }
 
 func UpdateDeploymentWithBroker(brokerURL string, jsonData []byte) error {
-	req, err := http.NewRequest(http.MethodPatch, brokerURL, bytes.NewBuffer(jsonData))
+	req, err := http.NewRequest(http.MethodPatch, brokerURL + "/api/participants", bytes.NewBuffer(jsonData))
 	if err != nil {
 		return err
 	}
@@ -72,14 +85,10 @@ func UpdateDeploymentWithBroker(brokerURL string, jsonData []byte) error {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != 200 {
-		var respBody HttpError
-		err = json.NewDecoder(resp.Body).Decode(&respBody)
+		err = logHTTPErrorThenExit(resp)
 		if err != nil {
 			return err
 		}
-
-		fmt.Printf("Status code: %v\n", resp.Status)
-		log.Fatal(respBody.Error)
 	}
 	return nil
 }
@@ -94,14 +103,10 @@ func GetLatestSpec(brokerURL, name string) (interface{}, error) {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != 200 {
-		var respBody HttpError
-		err = json.NewDecoder(resp.Body).Decode(&respBody)
+		err = logHTTPErrorThenExit(resp)
 		if err != nil {
 			return nil, err
 		}
-
-		fmt.Printf("Status code: %v\n", resp.Status)
-		log.Fatal(respBody.Error)
 	}
 
 	// move to internal/types.go after dev
