@@ -1,15 +1,16 @@
 package cmd
 
 import (
-	"errors"
+	// "errors"
 	// "encoding/json"
 	"fmt"
+	"os/exec"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-	client "github.com/contract-testing-framework/broker_cli/client"
-	utils "github.com/contract-testing-framework/broker_cli/utils"
+	// client "github.com/contract-testing-framework/broker_cli/client"
+	// utils "github.com/contract-testing-framework/broker_cli/utils"
 )
 
 var ProviderURL string
@@ -32,35 +33,55 @@ var testCmd = &cobra.Command{
 	-i --ignore-config  ingore .signetrc.yaml file if it exists
 	`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		name = viper.GetString("test.name")
-		ProviderURL = viper.GetString("test.provider-url")
-
-		if len(brokerURL) == 0 {
-			return errors.New("No --broker-url was provided. This is a required flag.")
-		}
-
-		if len(name) == 0 {
-			return errors.New("No --name was provided. This is a required flag.")
-		}
-
-		if version == "" || version == "auto" {
-			var err error
-			version, err = utils.SetVersionToGitSha(version)
-			if err != nil {
-				return err
-			}
-		}
-
-		if len(ProviderURL) == 0 {
-			return errors.New("No --provider-url was provided. This is a required flag.")
-		}
-
-		spec, err := client.GetLatestSpec(brokerURL, name)
+		shcmd := exec.Command("npm", "root", "-g")
+		outBytes, err := shcmd.CombinedOutput()
 		if err != nil {
+			fmt.Println("47 erred")
+			return err
+		}
+		
+		outBytes = outBytes[:len(outBytes) - 1]
+		dreddPath := string(outBytes) + "/test_signet_cli/node_modules/dredd"
+		fmt.Println(nodeModPath)
+
+		shcmd2 := exec.Command("npx", dreddPath)
+		outBytes, err = shcmd2.CombinedOutput()
+		if err != nil {
+			fmt.Println("53 erred")
 			return err
 		}
 
-		fmt.Println(spec)
+		fmt.Println(string(outBytes))
+
+		// name = viper.GetString("test.name")
+		// ProviderURL = viper.GetString("test.provider-url")
+
+		// if len(brokerURL) == 0 {
+		// 	return errors.New("No --broker-url was provided. This is a required flag.")
+		// }
+
+		// if len(name) == 0 {
+		// 	return errors.New("No --name was provided. This is a required flag.")
+		// }
+
+		// if version == "" || version == "auto" {
+		// 	var err error
+		// 	version, err = utils.SetVersionToGitSha(version)
+		// 	if err != nil {
+		// 		return err
+		// 	}
+		// }
+
+		// if len(ProviderURL) == 0 {
+		// 	return errors.New("No --provider-url was provided. This is a required flag.")
+		// }
+
+		// spec, err := client.GetLatestSpec(brokerURL, name)
+		// if err != nil {
+		// 	return err
+		// }
+
+		// fmt.Println(spec)
 
 		return nil
 	},
