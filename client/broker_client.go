@@ -83,3 +83,37 @@ func UpdateDeploymentWithBroker(brokerURL string, jsonData []byte) error {
 	}
 	return nil
 }
+
+func GetLatestSpec(brokerURL, name string) (interface{}, error) {
+	specURL := brokerURL + "/api/specs?provider=" + name
+
+	resp, err := http.Get(specURL)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != 200 {
+		var respBody HttpError
+		err = json.NewDecoder(resp.Body).Decode(&respBody)
+		if err != nil {
+			return nil, err
+		}
+
+		fmt.Printf("Status code: %v\n", resp.Status)
+		log.Fatal(respBody.Error)
+	}
+
+	// move to internal/types.go after dev
+	type specResponseBody struct {
+		Spec interface{} `json:"spec"`
+	}
+
+	var respBody specResponseBody
+	err = json.NewDecoder(resp.Body).Decode(&respBody)
+	if err != nil {
+		return nil, err
+	}
+
+	return respBody.Spec, nil
+}
