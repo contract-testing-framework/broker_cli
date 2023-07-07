@@ -42,7 +42,7 @@ var testCmd = &cobra.Command{
 		
 		outBytes = outBytes[:len(outBytes) - 1]
 		dreddPath := string(outBytes) + "/test_signet_cli/node_modules/dredd"
-		fmt.Println(nodeModPath)
+		fmt.Println(dreddPath)
 
 		shcmd2 := exec.Command("npx", dreddPath)
 		outBytes, err = shcmd2.CombinedOutput()
