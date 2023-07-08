@@ -203,3 +203,19 @@ func SliceOutNodeWarnings(str string) string {
 	re := regexp.MustCompile(`(?s)\(node(.+)warning was created\)\n`)
 	return re.ReplaceAllString(str, "")
 }
+
+func GetNpmPkgRoot() (string, error) {
+	shcmd := exec.Command("npm", "root", "-g")
+	stdoutStderr, err := shcmd.CombinedOutput()
+	if err != nil {
+		return "", errors.New("Could not find npm root")
+	}
+	
+	if len(stdoutStderr) < 1 {
+		return "", errors.New("npm root path was empty string")
+	}
+
+	pkgRoot := string(stdoutStderr[:len(stdoutStderr) - 1]) + "/signet-cli"
+
+	return pkgRoot, nil
+}
