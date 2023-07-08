@@ -115,11 +115,5 @@ func GetLatestSpec(brokerURL, name string) ([]byte, error) {
 		return nil, err
 	}
 
-	// var spec []byte
-	// err = json.NewDecoder(resp.Body).Decode(&spec)
-	// if err != nil {
-	// 	return nil, err
-	// }
-
 	return bodyBytes, nil
 }

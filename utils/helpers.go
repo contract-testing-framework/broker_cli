@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/exec"
 	"regexp"
+	"log"
 
 	client "github.com/contract-testing-framework/broker_cli/client"
 )
@@ -218,4 +219,19 @@ func GetNpmPkgRoot() (string, error) {
 	pkgRoot := string(stdoutStderr[:len(stdoutStderr) - 1]) + "/signet-cli"
 
 	return pkgRoot, nil
+}
+
+func TestProvider(dreddPath, specPath, providerURL string) (string, error) {
+	// return "", errors.New("TestProvider Ran when It Should Not Have")
+	log.Fatal("TestProvider Ran when It Should Not Have")
+
+	testCmd := exec.Command("npx", dreddPath, specPath, providerURL, "--loglevel=error")
+	stdoutStderr, err := testCmd.CombinedOutput()
+	testOutput := string(stdoutStderr)
+
+	if err != nil && len(testOutput) == 0 {
+		log.Fatal("Error: failed to execute dredd")
+	}
+
+	return testOutput, err
 }

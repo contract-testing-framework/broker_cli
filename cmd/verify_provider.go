@@ -4,6 +4,7 @@ import (
 	"os"
 	"os/exec"
 	"errors"
+	"log"
 	"fmt"
 
 	"github.com/spf13/cobra"
@@ -13,12 +14,16 @@ import (
 	utils "github.com/contract-testing-framework/broker_cli/utils"
 )
 
-var providerURL string
-
 const rwPermissions = 0666
 const colorGreen = "\033[32m"
 const colorRed = "\033[31m"
 const colorReset = "\033[0m"
+
+var providerURL string
+
+// abstract pkg fn's to enable mocking during testing
+var getNpmPkgRoot = utils.GetNpmPkgRoot
+var osWriteFile = os.WriteFile
 
 var testCmd = &cobra.Command{
 	Use:   "test",
@@ -53,33 +58,29 @@ var testCmd = &cobra.Command{
 			return err
 		}
 
-		signetRoot, err := utils.GetNpmPkgRoot()
+		signetRoot, err := getNpmPkgRoot()
 		if err != nil {
 			return err
 		}
 		specPath := signetRoot + "/specs/spec.json"
 		dreddPath := signetRoot + "/node_modules/dredd"
 
-		err = os.WriteFile(specPath, spec, rwPermissions)
+		err = osWriteFile(specPath, spec, rwPermissions)
 		if err != nil {
 			return errors.New("Failed to write specs/spec file: " + err.Error())
 		}
 
-		testCmd := exec.Command("npx", dreddPath, specPath, providerURL, "--loglevel=error")
-		stdoutStderr, err := testCmd.CombinedOutput()
-		testOutput := string(stdoutStderr)
-
-		if err != nil && len(testOutput) == 0 {
-			return errors.New("Failed to execute dredd")
-		}
+		testOutput, err := testProvider(dreddPath, specPath, providerURL)
 
 		if err != nil {
-			fmt.Println(colorRed + "FAIL" + colorReset + ": Provider test failed - the provider service does not correctly implement the API spec\n")
+			fmt.Println(colorRed + "FAIL" + colorReset + ": Provider test failed - the provider service does not correctly implement the API spec")
+			fmt.Println()
 			fmt.Println("Breakdown of interactions:")
 			testOutput = utils.SliceOutNodeWarnings(testOutput)
 			fmt.Println(testOutput)
 		} else {
-			fmt.Println(colorGreen + "PASS" + colorReset + ": Provider test passed - the provider service correctly implements the API spec\n")
+			fmt.Println(colorGreen + "PASS" + colorReset + ": Provider test passed - the provider service correctly implements the API spec")
+			fmt.Println()
 			fmt.Println("Informing the Signet broker of successful verification...")
 
 			err = utils.PublishProvider(specPath, brokerURL, name, version, branch)
@@ -116,6 +117,18 @@ func validateTestFlags(brokerURL, name, version, providerURL string) error {
 	}
 
 	return nil
+}
+
+func testProvider(dreddPath, specPath, providerURL string) (string, error) {
+	testCmd := exec.Command("npx", dreddPath, specPath, providerURL, "--loglevel=error")
+	stdoutStderr, err := testCmd.CombinedOutput()
+	testOutput := string(stdoutStderr)
+
+	if err != nil && len(testOutput) == 0 {
+		log.Fatal("Error: failed to execute dredd")
+	}
+
+	return testOutput, err
 }
 
 func init() {
