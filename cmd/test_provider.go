@@ -1,16 +1,17 @@
 package cmd
 
 import (
-	// "errors"
+	"errors"
 	// "encoding/json"
 	"fmt"
 	"os/exec"
+	"os"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-	// client "github.com/contract-testing-framework/broker_cli/client"
-	// utils "github.com/contract-testing-framework/broker_cli/utils"
+	client "github.com/contract-testing-framework/broker_cli/client"
+	utils "github.com/contract-testing-framework/broker_cli/utils"
 )
 
 var ProviderURL string
@@ -33,55 +34,64 @@ var testCmd = &cobra.Command{
 	-i --ignore-config  ingore .signetrc.yaml file if it exists
 	`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		shcmd := exec.Command("npm", "root", "-g")
-		outBytes, err := shcmd.CombinedOutput()
+		name = viper.GetString("test.name")
+		ProviderURL = viper.GetString("test.provider-url")
+
+		if len(brokerURL) == 0 {
+			return errors.New("No --broker-url was provided. This is a required flag.")
+		}
+
+		if len(name) == 0 {
+			return errors.New("No --name was provided. This is a required flag.")
+		}
+
+		if version == "" || version == "auto" {
+			var err error
+			version, err = utils.SetVersionToGitSha(version)
+			if err != nil {
+				return err
+			}
+		}
+
+		if len(ProviderURL) == 0 {
+			return errors.New("No --provider-url was provided. This is a required flag.")
+		}
+
+		spec, err := client.GetLatestSpec(brokerURL, name)
 		if err != nil {
-			fmt.Println("could not find npm root")
+			return err
+		}
+
+		shcmd := exec.Command("npm", "root", "-g")
+		stdoutStderr, err := shcmd.CombinedOutput()
+		if err != nil {
+			fmt.Println("Could not find npm root")
 			return err
 		}
 		
-		outBytes = outBytes[:len(outBytes) - 1]
-		dreddPath := string(outBytes) + "/test_signet_cli/node_modules/dredd"
-		fmt.Println(dreddPath)
+		if len(stdoutStderr) < 1 {
+			return errors.New("npm root path was empty string")
+		}
+		signetRoot := string(stdoutStderr[:len(stdoutStderr) - 1])
+		specPath := signetRoot + "/signet-cli/specs/spec"
+		dreddPath := signetRoot + "/signet-cli/node_modules/dredd"
 
-		shcmd2 := exec.Command("npx", dreddPath)
-		outBytes, err = shcmd2.CombinedOutput()
-
-		fmt.Println(string(outBytes))
+		err = os.WriteFile(specPath, spec, 0666)
 		if err != nil {
-			fmt.Println("npx .../dredd exited with status code 1")
+			fmt.Println("Failed to write specs/spec file")
 			return err
 		}
 
-		// name = viper.GetString("test.name")
-		// ProviderURL = viper.GetString("test.provider-url")
 
-		// if len(brokerURL) == 0 {
-		// 	return errors.New("No --broker-url was provided. This is a required flag.")
-		// }
 
-		// if len(name) == 0 {
-		// 	return errors.New("No --name was provided. This is a required flag.")
-		// }
+		shcmd2 := exec.Command("npx", "--trace-warnings", dreddPath, specPath, ProviderURL)
+		stdoutStderr, err = shcmd2.CombinedOutput()
 
-		// if version == "" || version == "auto" {
-		// 	var err error
-		// 	version, err = utils.SetVersionToGitSha(version)
-		// 	if err != nil {
-		// 		return err
-		// 	}
-		// }
-
-		// if len(ProviderURL) == 0 {
-		// 	return errors.New("No --provider-url was provided. This is a required flag.")
-		// }
-
-		// spec, err := client.GetLatestSpec(brokerURL, name)
-		// if err != nil {
-		// 	return err
-		// }
-
-		// fmt.Println(spec)
+		fmt.Println(string(stdoutStderr))
+		if err != nil && len(stdoutStderr) == 0 {
+			fmt.Println("Failed to execute dredd")
+			return err
+		}
 
 		return nil
 	},
