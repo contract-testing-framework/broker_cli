@@ -8,6 +8,10 @@ import (
 	"github.com/spf13/viper"
 )
 
+const colorGreen = "\033[32m"
+const colorRed = "\033[31m"
+const colorReset = "\033[0m"
+
 var IgnoreConfig bool
 var brokerURL string
 var path string

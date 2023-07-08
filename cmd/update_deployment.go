@@ -3,6 +3,7 @@ package cmd
 import (
 	"errors"
 	"encoding/json"
+	"fmt"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -71,6 +72,12 @@ var updateDeploymentCmd = &cobra.Command{
 		err = client.UpdateDeploymentWithBroker(brokerURL, jsonData)
 		if err != nil {
 			return err
+		}
+
+		if delete {
+			fmt.Println(colorGreen + "Undeployed" + colorReset + " - Signet broker was notified that service version is no longer deployed to the environment")
+		} else {
+			fmt.Println(colorGreen + "Deployed" + colorReset + " - Signet broker was notified that service version has been deployed to the environment")
 		}
 
 		return nil

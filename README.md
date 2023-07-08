@@ -88,13 +88,13 @@ publish:
   name: user_service
 ```
 
-#### Publishing a Consumer Contract (binary - with explicit flags)
+#### Publishing a Consumer Contract (with explicit flags)
 
 ```bash
 signet publish --path=./data_test/cons-prov.json --broker-url=http://localhost:3000 --type consumer
 ```
 
-#### Publish a Provider Specification (binary - yaml, with explicit flags)
+#### Publish a Provider Specification (with explicit flags)
 
 ```bash
 signet publish --path=./data_test/api-spec.yaml --broker-url=http://localhost:3000 --type provider --name=example-provider
@@ -130,6 +130,11 @@ test:
   provider-url: http://localhost:3002
 ```
 
+#### Test a provider service against an API spec (with explicit flags)
+```bash
+signet test --broker-url=http://localhost:3000 --provider-url=http://localhost:3002 --name=example-provider --version=version1 --branch
+```
+
 ## `signet update-deployment`
 
 - The `update-deployment` command informs the Signet broker of which service versions are currently deployed in an environment. If broker does not already know about the `--environment`, it will create it.
@@ -155,6 +160,11 @@ broker-url: http://localhost:3000
 
 update-deployment:
   name: user_service
+```
+
+#### Notify the Signet broker of a deployment
+```bash
+signet update-deployment --broker-url=http://localhost:3000 --name=example-provider --version=version1 --environment=production
 ```
 
 # Development Details

@@ -15,9 +15,6 @@ import (
 )
 
 const rwPermissions = 0666
-const colorGreen = "\033[32m"
-const colorRed = "\033[31m"
-const colorReset = "\033[0m"
 
 var providerURL string
 

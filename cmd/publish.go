@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"errors"
+	"fmt"
 	
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -58,12 +59,15 @@ var publishCmd = &cobra.Command{
 			if err != nil {
 				return err
 			}
+			fmt.Println(colorGreen + "Published" + colorReset + " - consumer contract published to Signet broker")
 		} else {
 			err = utils.PublishProvider(path, brokerURL, name, "", "")
 			if err != nil {
 				return err
 			}
+			fmt.Println(colorGreen + "Published" + colorReset + " - provider API spec published to Signet broker")
 		}
+
 
 		return nil
 	},
