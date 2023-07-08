@@ -85,21 +85,26 @@ var testCmd = &cobra.Command{
 		// "--reporter=markdown", "--output", signetRoot + "/results.md"
 		shcmd2 := exec.Command("npx", dreddPath, specPath, ProviderURL, "--loglevel=error")
 		stdoutStderr, err = shcmd2.CombinedOutput()
+		dreddOut := string(stdoutStderr)
 
-		if err != nil && len(stdoutStderr) == 0 {
+		if err != nil && len(dreddOut) == 0 {
 			fmt.Println("Failed to execute dredd")
 			return err
 		} 
 		
+		colorGreen := "\033[32m"
+		colorRed := "\033[31m"
+		colorReset := "\033[0m"
+
 		if err != nil {
-			fmt.Println("FAIL: Provider test failed - the provider service does not correctly implement the API spec\n")
+			fmt.Println(colorRed + "FAIL" + colorReset + ": Provider test failed - the provider service does not correctly implement the API spec\n")
 			fmt.Println("Breakdown of interactions:")
-			fmt.Println(string(stdoutStderr))
+			dreddOut = utils.SliceOutNodeWarnings(dreddOut)
+			fmt.Println(dreddOut)
 		} else {
-			fmt.Println("PASS: Provider test passed - the provider service correctly implements the API spec")
+			fmt.Println(colorGreen + "PASS" + colorReset + ": Provider test passed - the provider service correctly implements the API spec\n")
 			fmt.Println("Informing the Signet broker of successful verification...")
 
-			branch = ""
 			err = utils.PublishProvider(specPath, brokerURL, name, version, branch)
 			if err != nil {
 				return err
@@ -117,8 +122,10 @@ func init() {
 
 	testCmd.Flags().StringVarP(&name, "name", "n", "", "The name of the service which was deployed")
 	testCmd.Flags().StringVarP(&version, "version", "v", "", "The version of the service which was deployed")
+	testCmd.Flags().StringVarP(&branch, "branch", "b", "", "Version control branch (optional)")
 	testCmd.Flags().StringVarP(&ProviderURL, "provider-url", "s", "", "The URL where the provider service is running")
 	testCmd.Flags().Lookup("version").NoOptDefVal = "auto"
+	testCmd.Flags().Lookup("branch").NoOptDefVal = "auto"
 
 	viper.BindPFlag("test.name", testCmd.Flags().Lookup("name"))
 	viper.BindPFlag("test.provider-url", testCmd.Flags().Lookup("provider-url"))

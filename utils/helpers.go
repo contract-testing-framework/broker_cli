@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"regexp"
 
 	client "github.com/contract-testing-framework/broker_cli/client"
 )
@@ -196,4 +197,9 @@ func PublishProvider(path string, brokerURL string, ProviderName, version, branc
 	}
 
 	return nil
+}
+
+func SliceOutNodeWarnings(str string) string {
+	re := regexp.MustCompile(`(?s)\(node(.+)warning was created\)\n`)
+	return re.ReplaceAllString(str, "")
 }
