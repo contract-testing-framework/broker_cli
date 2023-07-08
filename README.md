@@ -98,6 +98,36 @@ signet publish --path=./data_test/cons-prov.json --broker-url=http://localhost:3
 signet publish --path=./data_test/api-spec.yaml --broker-url=http://localhost:3000 --type provider --provider-name example-provider
 ```
 
+## `signet test`
+- The `signet test` command determines if a provider service correctly implements an API spec. First, it fetches the most recently updated API spec from the Signet broker. Then, it leverages an open source tool (dredd) to parse the API spec, generate mock requests and expected responses, and execute those interactions against the provider service. If the tests are successful, `signet test` notifies the Signet broker that this version of the provider service is verified -- it is proven to implement the API spec through testing. If any tests fail, an analysis of the failing tests is logged.
+
+- Before running `signet test`, the provider service must be running, and an API spec for that service must be published to the Signet broker.
+
+```bash
+flags:
+
+-n --name 					the name of the provider service
+
+-v --version        the version of the provider service
+
+-b --branch         Version control branch (optional)
+
+-s --provider-url   the URL where the provider service is running
+
+-u --broker-url     the scheme, domain, and port where the Signet Broker is being hosted (ex. http://localhost:3000)
+
+-i --ignore-config  ingore .signetrc.yaml file if it exists
+```
+
+- `.signetrc.yaml` supports these flags for `signet test`:
+```yaml
+broker-url: http://localhost:3000
+
+test:
+  name: user_service
+  provider-url: http://localhost:3002
+```
+
 ## `signet update-deployment`
 
 - The `update-deployment` command informs the Signet broker of which service versions are currently deployed in an environment. If broker does not already know about the `--environment`, it will create it.
