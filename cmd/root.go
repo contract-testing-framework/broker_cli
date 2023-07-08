@@ -9,12 +9,11 @@ import (
 )
 
 var IgnoreConfig bool
-var BrokerBaseURL string
-var Path string
-var Name string
-var ProviderName string
-var Version string
-var Branch string
+var brokerURL string
+var path string
+var name string
+var version string
+var branch string
 
 // rootCmd represents the base command when called without any subcommands
 var RootCmd = &cobra.Command{
@@ -25,7 +24,7 @@ var RootCmd = &cobra.Command{
 
 func Execute() {
 	readConfigFile()
-	BrokerBaseURL = viper.GetString("broker-url")
+	brokerURL = viper.GetString("broker-url")
 
 	err := RootCmd.Execute()
 	if err != nil {
@@ -36,7 +35,7 @@ func Execute() {
 
 func init() {
 	RootCmd.PersistentFlags().BoolVarP(&IgnoreConfig, "ignore-config", "i", false, "ignore config file if present")
-	RootCmd.PersistentFlags().StringVarP(&BrokerBaseURL, "broker-url", "u", "", "Scheme, domain, and port where the Signet Broker is being hosted (ex. http://localhost:3000)")
+	RootCmd.PersistentFlags().StringVarP(&brokerURL, "broker-url", "u", "", "Scheme, domain, and port where the Signet Broker is being hosted (ex. http://localhost:3000)")
 
 	viper.BindPFlag("broker-url", RootCmd.PersistentFlags().Lookup("broker-url"))
 }

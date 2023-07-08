@@ -1,4 +1,4 @@
-package internal
+package utils
 
 type Consumer struct {
 	Name string `json:"name"`

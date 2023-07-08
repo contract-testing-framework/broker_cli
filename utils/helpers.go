@@ -1,4 +1,4 @@
-package internal
+package utils
 
 import (
 	"encoding/json"
@@ -6,16 +6,18 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"regexp"
+	"log"
 
 	client "github.com/contract-testing-framework/broker_cli/client"
 )
 
-func ValidType(Type string) error {
-	if Type != "consumer" && Type != "provider" {
-		if len(Type) == 0 {
-			Type = "not set"
+func ValidType(serviceType string) error {
+	if serviceType != "consumer" && serviceType != "provider" {
+		if len(serviceType) == 0 {
+			serviceType = "not set"
 		}
-		msg := fmt.Sprintf("--type required to be \"consumer\" or \"provider\", --type was %v", Type)
+		msg := fmt.Sprintf("--type required to be \"consumer\" or \"provider\", --type was %v", serviceType)
 		return errors.New(msg)
 	}
 	return nil
@@ -122,18 +124,18 @@ func SetBranchToCurrentGit(branch string) (string, error) {
 	return string(currentBranch), nil
 }
 
-func PublishConsumer(path string, brokerBaseUrl string, Version, Branch string) error {
-	if Branch == "auto" || (Branch == "" && (Version == "auto" || Version == "")) {
+func PublishConsumer(path string, brokerURL string, version, branch string) error {
+	if branch == "auto" || (branch == "" && (version == "auto" || version == "")) {
 		var err error
-		Branch, err = SetBranchToCurrentGit(Branch)
+		branch, err = SetBranchToCurrentGit(branch)
 		if err != nil {
 			return err
 		}
 	}
 
-	if Version == "" || Version == "auto" {
+	if version == "" || version == "auto" {
 		var err error
-		Version, err = SetVersionToGitSha(Version)
+		version, err = SetVersionToGitSha(version)
 		if err != nil {
 			return err
 		}
@@ -150,12 +152,12 @@ func PublishConsumer(path string, brokerBaseUrl string, Version, Branch string) 
 		return errors.New("consumer contract does not have a consumer name")
 	}
 
-	requestBody, err := CreateConsumerRequestBody(contract, consumerName, Version, Branch)
+	requestBody, err := CreateConsumerRequestBody(contract, consumerName, version, branch)
 	if err != nil {
 		return err
 	}
 
-	err = client.PublishToBroker(brokerBaseUrl+"/api/contracts", requestBody)
+	err = client.PublishToBroker(brokerURL + "/api/contracts", requestBody)
 	if err != nil {
 		return err
 	}
@@ -163,21 +165,21 @@ func PublishConsumer(path string, brokerBaseUrl string, Version, Branch string) 
 	return nil
 }
 
-func PublishProvider(path string, brokerBaseUrl string, ProviderName, Version, Branch string) error {
+func PublishProvider(path string, brokerURL string, ProviderName, version, branch string) error {
 	if len(ProviderName) == 0 {
 		return errors.New("must set --provider-name if --type is \"provider\"")
 	}
 
-	if Branch == "auto" || (Branch == "" && Version == "auto") {
+	if branch == "auto" || (branch == "" && version == "auto") {
 		var err error
-		Branch, err = SetBranchToCurrentGit(Branch)
+		branch, err = SetBranchToCurrentGit(branch)
 		if err != nil {
 			return err
 		}
 	}
 
-	if Version == "auto" {
-		SetVersionToGitSha(Version)
+	if version == "auto" {
+		SetVersionToGitSha(version)
 	}
 
 	spec, specFormat, err := LoadSpec(path)
@@ -185,15 +187,51 @@ func PublishProvider(path string, brokerBaseUrl string, ProviderName, Version, B
 		return err
 	}
 
-	requestBody, err := CreateProviderRequestBody(spec, ProviderName, Version, Branch, specFormat)
+	requestBody, err := CreateProviderRequestBody(spec, ProviderName, version, branch, specFormat)
 	if err != nil {
 		return err
 	}
 
-	err = client.PublishToBroker(brokerBaseUrl+"/api/specs", requestBody)
+	err = client.PublishToBroker(brokerURL + "/api/specs", requestBody)
 	if err != nil {
 		return err
 	}
 
 	return nil
+}
+
+func SliceOutNodeWarnings(str string) string {
+	re := regexp.MustCompile(`(?s)\(node(.+)warning was created\)\n`)
+	return re.ReplaceAllString(str, "")
+}
+
+func GetNpmPkgRoot() (string, error) {
+	shcmd := exec.Command("npm", "root", "-g")
+	stdoutStderr, err := shcmd.CombinedOutput()
+	if err != nil {
+		return "", errors.New("Could not find npm root")
+	}
+	
+	if len(stdoutStderr) < 1 {
+		return "", errors.New("npm root path was empty string")
+	}
+
+	pkgRoot := string(stdoutStderr[:len(stdoutStderr) - 1]) + "/signet-cli"
+
+	return pkgRoot, nil
+}
+
+func TestProvider(dreddPath, specPath, providerURL string) (string, error) {
+	// return "", errors.New("TestProvider Ran when It Should Not Have")
+	log.Fatal("TestProvider Ran when It Should Not Have")
+
+	testCmd := exec.Command("npx", dreddPath, specPath, providerURL, "--loglevel=error")
+	stdoutStderr, err := testCmd.CombinedOutput()
+	testOutput := string(stdoutStderr)
+
+	if err != nil && len(testOutput) == 0 {
+		log.Fatal("Error: failed to execute dredd")
+	}
+
+	return testOutput, err
 }

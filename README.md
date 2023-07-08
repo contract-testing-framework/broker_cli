@@ -4,6 +4,14 @@ The command line interface for the Signet contract testing framework.
 
 # Installation
 
+## Install npm pkg (full featured, requires node and npm)
+
+```bash
+npm install -g test_signet_cli
+```
+
+## Install only the Signet CLI golang binary (does not support provider verification)
+
 MacOS arm64
 ```bash
 curl -sLO https://github.com/contract-testing-framework/broker_cli/releases/download/v0.3.0/signet-darwin-arm64 \
@@ -90,6 +98,36 @@ signet publish --path=./data_test/cons-prov.json --broker-url=http://localhost:3
 signet publish --path=./data_test/api-spec.yaml --broker-url=http://localhost:3000 --type provider --provider-name example-provider
 ```
 
+## `signet test`
+- The `signet test` command determines if a provider service correctly implements an API spec. First, it fetches the most recently updated API spec from the Signet broker. Then, it leverages an open source tool (dredd) to parse the API spec, generate mock requests and expected responses, and execute those interactions against the provider service. If the tests are successful, `signet test` notifies the Signet broker that this version of the provider service is verified -- it is proven to implement the API spec through testing. If any tests fail, an analysis of the failing tests is logged.
+
+- Before running `signet test`, the provider service must be running, and an API spec for that service must be published to the Signet broker.
+
+```bash
+flags:
+
+-n --name 					the name of the provider service
+
+-v --version        the version of the provider service
+
+-b --branch         Version control branch (optional)
+
+-s --provider-url   the URL where the provider service is running
+
+-u --broker-url     the scheme, domain, and port where the Signet Broker is being hosted (ex. http://localhost:3000)
+
+-i --ignore-config  ingore .signetrc.yaml file if it exists
+```
+
+- `.signetrc.yaml` supports these flags for `signet test`:
+```yaml
+broker-url: http://localhost:3000
+
+test:
+  name: user_service
+  provider-url: http://localhost:3002
+```
+
 ## `signet update-deployment`
 
 - The `update-deployment` command informs the Signet broker of which service versions are currently deployed in an environment. If broker does not already know about the `--environment`, it will create it.
@@ -133,16 +171,29 @@ In your local `go` environment:
 
 ## Run the test suite
 `make test`
-## Release updated binaries
 
-- build new binaries with `make build`
-- create a new semantic version tag before committing: `git tag v0.1.4`
-- commit changes
-- push changes to github
-- manually upload the binaries through the github releases page:
-  - from the main `Code` tab, click on `Releases` in the right-hand sidebar
-  - click `Draft a new release`
-  - add the semantic version tag for the commit
-  - upload binaries
-  - click `set as latest release`
-  - click `Publish release`
+
+## Releasing a new version of the Signet CLI (as an NPM package)
+
+#### In the Signet CLI project
+- commit changes locally
+- add an annotated tag with a new semantic version (check the 'Releases' page in the GitHub repo for the last version number)
+    `git tag -a v0.3.10 -m "updated changes"`
+- push the commit and tag to GitHub
+    `git push origin v0.3.10`
+- use goreleaser to publish binaries to 'Releases' on GitHub (this automatically builds new binaries before releasing)
+    `goreleaser release --clean`
+
+#### In the cli_npm_pkg project
+- delete the outdated binaries
+    `rm -rf dist/`
+
+#### In the Signet CLI project
+- copy the new binaries over to wherever your local cli_npm_pkg root directory is
+    `cp -r dist <relative path to your cli_npm_pkg root>`
+
+#### In the cli_npm_pkg project
+- open up package.json, and change the `"version"` to the new semantic version
+    `"version": 0.3.10`
+- publish the updated npm package
+    `npm publish`

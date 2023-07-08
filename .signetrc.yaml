@@ -7,3 +7,7 @@ publish:
 
 update-deployment:
   name: user_service
+
+test:
+  name: user_service
+  provider-url: http://localhost:3002
