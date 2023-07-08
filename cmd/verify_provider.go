@@ -34,6 +34,9 @@ var testCmd = &cobra.Command{
 	-i --ignore-config  ingore .signetrc.yaml file if it exists
 	`,
 	RunE: func(cmd *cobra.Command, args []string) error {
+		name = viper.GetString("test.name")
+		providerURL = viper.GetString("test.provider-url")
+
 		err := validateTestFlags(brokerURL, name, version, providerURL)
 		if err != nil {
 			return err
@@ -61,7 +64,7 @@ var testCmd = &cobra.Command{
 
 		// "--reporter=markdown", "--output", signetRoot + "/results.md"
 		shcmd2 := exec.Command("npx", dreddPath, specPath, providerURL, "--loglevel=error")
-		stdoutStderr, err = shcmd2.CombinedOutput()
+		stdoutStderr, err := shcmd2.CombinedOutput()
 		dreddOut := string(stdoutStderr)
 
 		if err != nil && len(dreddOut) == 0 {
@@ -109,9 +112,6 @@ func init() {
 }
 
 func validateTestFlags(brokerURL, name, version, providerURL string) error {
-	name = viper.GetString("test.name")
-	providerURL = viper.GetString("test.provider-url")
-
 	if len(brokerURL) == 0 {
 		return errors.New("No --broker-url was provided. This is a required flag.")
 	}
