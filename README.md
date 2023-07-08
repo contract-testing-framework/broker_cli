@@ -43,7 +43,11 @@ Every signet command supports `--help` flag, for example:
 
 ## `signet publish`
 
-- The `publish` command pushes a local contract or spec to the broker. This automatically triggers contract/spec comparison if the broker already has a contract for the other participant in the integration.
+- The `publish` command pushes a local contract or API spec to the broker. This automatically triggers contract/spec comparison if the broker already has a contract or API spec for the other participant in the integration.
+
+- When publishing a consumer contract, it required to pass a `--version`. This is used to inform the Signet broker of which versions of the consumer service the consumer contract is tested against.
+
+- When publishing a provider spec, `--version` and `--branch` flags are ignored. Versions of a provider service are proven to correctly implement an API spec with the `signet test` command. A passing `signet test` will inform the Signet broker of which versions of the provider service are tested against the API spec.
 
 ```bash
 flags:
@@ -52,13 +56,11 @@ flags:
 
 -t -—type           the type of service contract (either 'consumer' or 'provider')
 
--n -—provider-name  canonical name of the provider service (only for —-type 'provider')
+-n -—name           canonical name of the provider service (only for —-type 'provider')
 
--v -—version        service version (required for --type 'consumer')
--—type=consumer: if flag not passed or passed without value, defaults to the git SHA of HEAD
--—type=provider: if the flag passed without value, defaults to git SHA
+-v -—version        service version (only for --type 'consumer', if flag not passed or passed without value, defaults to the git SHA of HEAD)
 
--b -—branch         git branch name (optional, defaults to current git branch)
+-b -—branch         git branch name (optional, only for --type 'consumer', defaults to git branch of HEAD)
 
 -u --broker-url     the scheme, domain, and port where the Signet Broker is being hosted (ex. http://localhost:3000)
 
@@ -83,7 +85,7 @@ broker-url: http://localhost:3000
 publish:
   type: provider
   path: ./data_test/api-spec.json
-  provider-name: user_service
+  name: user_service
 ```
 
 #### Publishing a Consumer Contract (binary - with explicit flags)
@@ -95,7 +97,7 @@ signet publish --path=./data_test/cons-prov.json --broker-url=http://localhost:3
 #### Publish a Provider Specification (binary - yaml, with explicit flags)
 
 ```bash
-signet publish --path=./data_test/api-spec.yaml --broker-url=http://localhost:3000 --type provider --provider-name example-provider
+signet publish --path=./data_test/api-spec.yaml --broker-url=http://localhost:3000 --type provider --name=example-provider
 ```
 
 ## `signet test`
@@ -106,17 +108,17 @@ signet publish --path=./data_test/api-spec.yaml --broker-url=http://localhost:30
 ```bash
 flags:
 
--n --name 					the name of the provider service
+-n --name           the name of the provider service
 
--v --version        the version of the provider service
+-v --version        the version of the provider service (required, passing --version without a value will default to git SHA of HEAD)
 
--b --branch         Version control branch (optional)
+-b --branch         version control branch (passing --branch without a value will default to git branch of HEAD)
 
 -s --provider-url   the URL where the provider service is running
 
 -u --broker-url     the scheme, domain, and port where the Signet Broker is being hosted (ex. http://localhost:3000)
 
--i --ignore-config  ingore .signetrc.yaml file if it exists
+-i --ignore-config  ingore .signetrc.yaml file if it exists (optional)
 ```
 
 - `.signetrc.yaml` supports these flags for `signet test`:
@@ -137,7 +139,7 @@ flags:
 
 -n --name           the name of the service
 
--v --version        the version of the service
+-v --version        the version of the service (required)
 
 -e --environment    the name of the environment that the service is deployed to (ex. production)
 

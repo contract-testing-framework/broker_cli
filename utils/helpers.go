@@ -167,7 +167,7 @@ func PublishConsumer(path string, brokerURL string, version, branch string) erro
 
 func PublishProvider(path string, brokerURL string, ProviderName, version, branch string) error {
 	if len(ProviderName) == 0 {
-		return errors.New("must set --provider-name if --type is \"provider\"")
+		return errors.New("must set --name if --type is \"provider\"")
 	}
 
 	if branch == "auto" || (branch == "" && version == "auto") {
