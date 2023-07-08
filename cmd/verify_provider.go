@@ -1,11 +1,10 @@
 package cmd
 
 import (
-	"errors"
-	// "encoding/json"
-	"fmt"
-	"os/exec"
 	"os"
+	"os/exec"
+	"errors"
+	"fmt"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -14,7 +13,12 @@ import (
 	utils "github.com/contract-testing-framework/broker_cli/utils"
 )
 
-var ProviderURL string
+var providerURL string
+
+const rwPermissions = 0666
+const colorGreen = "\033[32m"
+const colorRed = "\033[31m"
+const colorReset = "\033[0m"
 
 var testCmd = &cobra.Command{
 	Use:   "test",
@@ -27,6 +31,8 @@ var testCmd = &cobra.Command{
 
 	-v --version        the version of the provider service
 
+	-b --branch         Version control branch (optional)
+
 	-s --provider-url   the URL where the provider service is running
 
 	-u --broker-url     the scheme, domain, and port where the Signet Broker is being hosted (ex. http://localhost:3000)
@@ -35,26 +41,11 @@ var testCmd = &cobra.Command{
 	`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		name = viper.GetString("test.name")
-		ProviderURL = viper.GetString("test.provider-url")
+		providerURL = viper.GetString("test.provider-url")
 
-		if len(brokerURL) == 0 {
-			return errors.New("No --broker-url was provided. This is a required flag.")
-		}
-
-		if len(name) == 0 {
-			return errors.New("No --name was provided. This is a required flag.")
-		}
-
-		if version == "" || version == "auto" {
-			var err error
-			version, err = utils.SetVersionToGitSha(version)
-			if err != nil {
-				return err
-			}
-		}
-
-		if len(ProviderURL) == 0 {
-			return errors.New("No --provider-url was provided. This is a required flag.")
+		err := validateTestFlags(brokerURL, name, version, providerURL)
+		if err != nil {
+			return err
 		}
 
 		spec, err := client.GetLatestSpec(brokerURL, name)
@@ -62,45 +53,31 @@ var testCmd = &cobra.Command{
 			return err
 		}
 
-		shcmd := exec.Command("npm", "root", "-g")
-		stdoutStderr, err := shcmd.CombinedOutput()
+		signetRoot, err := utils.GetNpmPkgRoot()
 		if err != nil {
-			fmt.Println("Could not find npm root")
 			return err
 		}
-		
-		if len(stdoutStderr) < 1 {
-			return errors.New("npm root path was empty string")
-		}
-		signetRoot := string(stdoutStderr[:len(stdoutStderr) - 1]) + "/signet-cli"
 		specPath := signetRoot + "/specs/spec.json"
 		dreddPath := signetRoot + "/node_modules/dredd"
 
-		err = os.WriteFile(specPath, spec, 0666)
+		err = os.WriteFile(specPath, spec, rwPermissions)
 		if err != nil {
-			fmt.Println("Failed to write specs/spec file")
-			return err
+			return errors.New("Failed to write specs/spec file: " + err.Error())
 		}
 
-		// "--reporter=markdown", "--output", signetRoot + "/results.md"
-		shcmd2 := exec.Command("npx", dreddPath, specPath, ProviderURL, "--loglevel=error")
-		stdoutStderr, err = shcmd2.CombinedOutput()
-		dreddOut := string(stdoutStderr)
+		testCmd := exec.Command("npx", dreddPath, specPath, providerURL, "--loglevel=error")
+		stdoutStderr, err := testCmd.CombinedOutput()
+		testOutput := string(stdoutStderr)
 
-		if err != nil && len(dreddOut) == 0 {
-			fmt.Println("Failed to execute dredd")
-			return err
-		} 
-		
-		colorGreen := "\033[32m"
-		colorRed := "\033[31m"
-		colorReset := "\033[0m"
+		if err != nil && len(testOutput) == 0 {
+			return errors.New("Failed to execute dredd")
+		}
 
 		if err != nil {
 			fmt.Println(colorRed + "FAIL" + colorReset + ": Provider test failed - the provider service does not correctly implement the API spec\n")
 			fmt.Println("Breakdown of interactions:")
-			dreddOut = utils.SliceOutNodeWarnings(dreddOut)
-			fmt.Println(dreddOut)
+			testOutput = utils.SliceOutNodeWarnings(testOutput)
+			fmt.Println(testOutput)
 		} else {
 			fmt.Println(colorGreen + "PASS" + colorReset + ": Provider test passed - the provider service correctly implements the API spec\n")
 			fmt.Println("Informing the Signet broker of successful verification...")
@@ -110,11 +87,35 @@ var testCmd = &cobra.Command{
 				return err
 			}
 
-			fmt.Println("Verification results published to Signet broker.")
+			fmt.Println("Verification results published to Signet broker")
 		}
 
 		return nil
 	},
+}
+
+func validateTestFlags(brokerURL, name, version, providerURL string) error {
+	if len(brokerURL) == 0 {
+		return errors.New("No --broker-url was provided. This is a required flag.")
+	}
+
+	if len(name) == 0 {
+		return errors.New("No --name was provided. This is a required flag.")
+	}
+
+	if version == "" || version == "auto" {
+		var err error
+		version, err = utils.SetVersionToGitSha(version)
+		if err != nil {
+			return err
+		}
+	}
+
+	if len(providerURL) == 0 {
+		return errors.New("No --provider-url was provided. This is a required flag.")
+	}
+
+	return nil
 }
 
 func init() {
@@ -123,7 +124,7 @@ func init() {
 	testCmd.Flags().StringVarP(&name, "name", "n", "", "The name of the service which was deployed")
 	testCmd.Flags().StringVarP(&version, "version", "v", "", "The version of the service which was deployed")
 	testCmd.Flags().StringVarP(&branch, "branch", "b", "", "Version control branch (optional)")
-	testCmd.Flags().StringVarP(&ProviderURL, "provider-url", "s", "", "The URL where the provider service is running")
+	testCmd.Flags().StringVarP(&providerURL, "provider-url", "s", "", "The URL where the provider service is running")
 	testCmd.Flags().Lookup("version").NoOptDefVal = "auto"
 	testCmd.Flags().Lookup("branch").NoOptDefVal = "auto"
 
