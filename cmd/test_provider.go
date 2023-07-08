@@ -72,9 +72,9 @@ var testCmd = &cobra.Command{
 		if len(stdoutStderr) < 1 {
 			return errors.New("npm root path was empty string")
 		}
-		signetRoot := string(stdoutStderr[:len(stdoutStderr) - 1])
-		specPath := signetRoot + "/signet-cli/specs/spec"
-		dreddPath := signetRoot + "/signet-cli/node_modules/dredd"
+		signetRoot := string(stdoutStderr[:len(stdoutStderr) - 1]) + "/signet-cli"
+		specPath := signetRoot + "/specs/spec.json"
+		dreddPath := signetRoot + "/node_modules/dredd"
 
 		err = os.WriteFile(specPath, spec, 0666)
 		if err != nil {
@@ -82,15 +82,30 @@ var testCmd = &cobra.Command{
 			return err
 		}
 
-
-
-		shcmd2 := exec.Command("npx", "--trace-warnings", dreddPath, specPath, ProviderURL)
+		// "--reporter=markdown", "--output", signetRoot + "/results.md"
+		shcmd2 := exec.Command("npx", dreddPath, specPath, ProviderURL, "--loglevel=error")
 		stdoutStderr, err = shcmd2.CombinedOutput()
 
-		fmt.Println(string(stdoutStderr))
 		if err != nil && len(stdoutStderr) == 0 {
 			fmt.Println("Failed to execute dredd")
 			return err
+		} 
+		
+		if err != nil {
+			fmt.Println("FAIL: Provider test failed - the provider service does not correctly implement the API spec\n")
+			fmt.Println("Breakdown of interactions:")
+			fmt.Println(string(stdoutStderr))
+		} else {
+			fmt.Println("PASS: Provider test passed - the provider service correctly implements the API spec")
+			fmt.Println("Informing the Signet broker of successful verification...")
+
+			branch = ""
+			err = utils.PublishProvider(specPath, brokerURL, name, version, branch)
+			if err != nil {
+				return err
+			}
+
+			fmt.Println("Verification results published to Signet broker.")
 		}
 
 		return nil
