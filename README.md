@@ -7,7 +7,7 @@ The command line interface for the Signet contract testing framework.
 - requires node and npm
 
 ```bash
-npm install -g test_signet_cli
+npm install -g signet-cli
 ```
 
 # Docs
