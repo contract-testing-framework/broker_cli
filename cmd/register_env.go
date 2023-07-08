@@ -6,7 +6,7 @@ import (
 
 	"github.com/spf13/cobra"
 	client "github.com/contract-testing-framework/broker_cli/client"
-	internal "github.com/contract-testing-framework/broker_cli/internal"
+	utils "github.com/contract-testing-framework/broker_cli/utils"
 )
 
 var registerEnvCmd = &cobra.Command{
@@ -31,7 +31,7 @@ var registerEnvCmd = &cobra.Command{
 			return errors.New("No --name was provided. A value for this flag is required.")
 		}
 
-		requestBody := internal.EnvBody{name}
+		requestBody := utils.EnvBody{name}
 
 		jsonData, err := json.Marshal(requestBody)
 		if err != nil {

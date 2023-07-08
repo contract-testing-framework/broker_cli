@@ -4,6 +4,14 @@ The command line interface for the Signet contract testing framework.
 
 # Installation
 
+## Install npm pkg (full featured, requires node and npm)
+
+```bash
+npm install -g test_signet_cli
+```
+
+## Install only the Signet CLI golang binary (does not support provider verification)
+
 MacOS arm64
 ```bash
 curl -sLO https://github.com/contract-testing-framework/broker_cli/releases/download/v0.3.0/signet-darwin-arm64 \
@@ -133,16 +141,29 @@ In your local `go` environment:
 
 ## Run the test suite
 `make test`
-## Release updated binaries
 
-- build new binaries with `make build`
-- create a new semantic version tag before committing: `git tag v0.1.4`
-- commit changes
-- push changes to github
-- manually upload the binaries through the github releases page:
-  - from the main `Code` tab, click on `Releases` in the right-hand sidebar
-  - click `Draft a new release`
-  - add the semantic version tag for the commit
-  - upload binaries
-  - click `set as latest release`
-  - click `Publish release`
+
+## Releasing a new version of the Signet CLI (as an NPM package)
+
+#### In the Signet CLI project
+- commit changes locally
+- add an annotated tag with a new semantic version (check the 'Releases' page in the GitHub repo for the last version number)
+    `git tag -a v0.3.10 -m "updated changes"`
+- push the commit and tag to GitHub
+    `git push origin v0.3.10`
+- use goreleaser to publish binaries to 'Releases' on GitHub (this automatically builds new binaries before releasing)
+    `goreleaser release --clean`
+
+#### In the cli_npm_pkg project
+- delete the outdated binaries
+    `rm -rf dist/`
+
+#### In the Signet CLI project
+- copy the new binaries over to wherever your local cli_npm_pkg root directory is
+    `cp -r dist <relative path to your cli_npm_pkg root>`
+
+#### In the cli_npm_pkg project
+- open up package.json, and change the `"version"` to the new semantic version
+    `"version": 0.3.10`
+- publish the updated npm package
+    `npm publish`

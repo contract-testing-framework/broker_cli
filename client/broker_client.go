@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"bytes"
 	"encoding/json"
+	"io"
 	"fmt"
 	"log"
 )
@@ -93,7 +94,7 @@ func UpdateDeploymentWithBroker(brokerURL string, jsonData []byte) error {
 	return nil
 }
 
-func GetLatestSpec(brokerURL, name string) (interface{}, error) {
+func GetLatestSpec(brokerURL, name string) ([]byte, error) {
 	specURL := brokerURL + "/api/specs?provider=" + name
 
 	resp, err := http.Get(specURL)
@@ -109,16 +110,16 @@ func GetLatestSpec(brokerURL, name string) (interface{}, error) {
 		}
 	}
 
-	// move to internal/types.go after dev
-	type specResponseBody struct {
-		Spec interface{} `json:"spec"`
-	}
-
-	var respBody specResponseBody
-	err = json.NewDecoder(resp.Body).Decode(&respBody)
+	bodyBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
 	}
 
-	return respBody.Spec, nil
+	// var spec []byte
+	// err = json.NewDecoder(resp.Body).Decode(&spec)
+	// if err != nil {
+	// 	return nil, err
+	// }
+
+	return bodyBytes, nil
 }

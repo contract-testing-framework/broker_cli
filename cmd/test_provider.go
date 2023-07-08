@@ -4,12 +4,14 @@ import (
 	"errors"
 	// "encoding/json"
 	"fmt"
+	"os/exec"
+	"os"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
 	client "github.com/contract-testing-framework/broker_cli/client"
-	internal "github.com/contract-testing-framework/broker_cli/internal"
+	utils "github.com/contract-testing-framework/broker_cli/utils"
 )
 
 var ProviderURL string
@@ -45,7 +47,7 @@ var testCmd = &cobra.Command{
 
 		if version == "" || version == "auto" {
 			var err error
-			version, err = internal.SetVersionToGitSha(version)
+			version, err = utils.SetVersionToGitSha(version)
 			if err != nil {
 				return err
 			}
@@ -60,7 +62,36 @@ var testCmd = &cobra.Command{
 			return err
 		}
 
-		fmt.Println(spec)
+		shcmd := exec.Command("npm", "root", "-g")
+		stdoutStderr, err := shcmd.CombinedOutput()
+		if err != nil {
+			fmt.Println("Could not find npm root")
+			return err
+		}
+		
+		if len(stdoutStderr) < 1 {
+			return errors.New("npm root path was empty string")
+		}
+		signetRoot := string(stdoutStderr[:len(stdoutStderr) - 1])
+		specPath := signetRoot + "/signet-cli/specs/spec"
+		dreddPath := signetRoot + "/signet-cli/node_modules/dredd"
+
+		err = os.WriteFile(specPath, spec, 0666)
+		if err != nil {
+			fmt.Println("Failed to write specs/spec file")
+			return err
+		}
+
+
+
+		shcmd2 := exec.Command("npx", "--trace-warnings", dreddPath, specPath, ProviderURL)
+		stdoutStderr, err = shcmd2.CombinedOutput()
+
+		fmt.Println(string(stdoutStderr))
+		if err != nil && len(stdoutStderr) == 0 {
+			fmt.Println("Failed to execute dredd")
+			return err
+		}
 
 		return nil
 	},

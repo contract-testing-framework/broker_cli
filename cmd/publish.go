@@ -6,7 +6,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-	internal "github.com/contract-testing-framework/broker_cli/internal"
+	utils "github.com/contract-testing-framework/broker_cli/utils"
 )
 
 var serviceType string
@@ -51,18 +51,18 @@ var publishCmd = &cobra.Command{
 			return errors.New("No --broker-url was provided. This is a required flag.")
 		}
 
-		err := internal.ValidType(serviceType)
+		err := utils.ValidType(serviceType)
 		if err != nil {
 			return err
 		}
 
 		if serviceType == "consumer" {
-			err = internal.PublishConsumer(path, brokerURL, version, branch)
+			err = utils.PublishConsumer(path, brokerURL, version, branch)
 			if err != nil {
 				return err
 			}
 		} else {
-			err = internal.PublishProvider(path, brokerURL, providerName, version, branch)
+			err = utils.PublishProvider(path, brokerURL, providerName, version, branch)
 			if err != nil {
 				return err
 			}
