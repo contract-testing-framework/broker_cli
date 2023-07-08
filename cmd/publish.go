@@ -26,14 +26,12 @@ var publishCmd = &cobra.Command{
 	
 	-n -—name           canonical name of the provider service (only for —-type 'provider')
 	
-	-v -—version        service version (required for --type 'consumer')
-	-—type=consumer: if flag not passed or passed without value, defaults to the git SHA of HEAD
-	-—type=provider: if the flag passed without value, defaults to git SHA
+	-v -—version        service version (only for --type 'consumer', if flag not passed or passed without value, defaults to the git SHA of HEAD)
 	
-	-b -—branch         git branch name (optional, defaults to current git branch)
-
+	-b -—branch         git branch name (optional, only for --type 'consumer', defaults to git branch of HEAD)
+	
 	-u --broker-url     the scheme, domain, and port where the Signet Broker is being hosted (ex. http://localhost:3000)
-
+	
 	-i --ignore-config  ingore .signetrc.yaml file if it exists
 `,
 	RunE: func(cmd *cobra.Command, args []string) error {
@@ -61,7 +59,7 @@ var publishCmd = &cobra.Command{
 				return err
 			}
 		} else {
-			err = utils.PublishProvider(path, brokerURL, name, version, branch)
+			err = utils.PublishProvider(path, brokerURL, name, "", "")
 			if err != nil {
 				return err
 			}
@@ -76,9 +74,9 @@ func init() {
 
 	publishCmd.Flags().StringVarP(&path, "path", "p", "", "Relative path from the root directory to the contract or spec file")
 	publishCmd.Flags().StringVarP(&serviceType, "type", "t", "", "Type of the participant (\"consumer\" or \"provider\")")
-	publishCmd.Flags().StringVarP(&branch, "branch", "b", "", "Version control branch (optional)")
+	publishCmd.Flags().StringVarP(&branch, "branch", "b", "", "git branch name (optional, only for --type 'consumer', defaults to git branch of HEAD)")
 	publishCmd.Flags().StringVarP(&name, "name", "n", "", "canonical name of the provider service (only for —-type 'provider')")
-	publishCmd.Flags().StringVarP(&version, "version", "v", "", "The version of the service (Defaults to git SHA)")
+	publishCmd.Flags().StringVarP(&version, "version", "v", "", "service version (only for --type 'consumer', if flag not passed or passed without value, defaults to the git SHA of HEAD)")
 	publishCmd.Flags().Lookup("version").NoOptDefVal = "auto"
 	publishCmd.Flags().Lookup("branch").NoOptDefVal = "auto"
 

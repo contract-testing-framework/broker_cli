@@ -225,14 +225,14 @@ func TestPublishProviderWithVersionAndBranch(t *testing.T) {
 		}
 	})
 
-	t.Run("has correct providerVersion", func(t *testing.T) {
-		if reqBody.ProviderVersion != "version1" {
+	t.Run("does not have providerVersion", func(t *testing.T) {
+		if len(reqBody.ProviderVersion) != 0 {
 			t.Error()
 		}
 	})
 
-	t.Run("has correct providerBranch", func(t *testing.T) {
-		if reqBody.ProviderBranch != "main" {
+	t.Run("does not have providerBranch", func(t *testing.T) {
+		if len(reqBody.ProviderBranch) != 0 {
 			t.Error()
 		}
 	})

@@ -6,7 +6,7 @@ import (
 	"errors"
 	"io/fs"
 
-	// utils "github.com/contract-testing-framework/broker_cli/utils"
+	utils "github.com/contract-testing-framework/broker_cli/utils"
 )
 
 /* ------------- helpers ------------- */
@@ -114,4 +114,51 @@ func TestSignetCanGetLatestSpec(t *testing.T) {
 		expected := "Error: Failed to write specs/spec file: stop this test here"
 		actual.startsWith(expected, t)
 	})
+}
+
+func TestPublishProviderUtilWithoutVersion(t *testing.T) {
+	server, reqBody := mockServerForJSONReq201Created[utils.ProviderBody](t)
+	defer server.Close()
+
+	path := "../data_test/api-spec.json"
+	brokerURL := server.URL
+	name := "user_service"
+	version := "auto"
+	branch := "developement"
+
+	err := utils.PublishProvider(path, brokerURL, name, version, branch)
+	if err != nil {
+		t.Error()
+	}
+
+	t.Run("has correct providerName", func(t *testing.T) {
+		if reqBody.ProviderName != "user_service" {
+			t.Error()
+		}
+	})
+
+	t.Run("has a providerVersion", func(t *testing.T) {
+		if len(reqBody.ProviderVersion) == 0 {
+			t.Error()
+		}
+	})
+
+	t.Run("has a providerBranch", func(t *testing.T) {
+		if len(reqBody.ProviderBranch) == 0 {
+			t.Error()
+		}
+	})
+
+	t.Run("has correct specFormat", func(t *testing.T) {
+		if reqBody.SpecFormat != "json" {
+			t.Error()
+		}
+	})
+
+	t.Run("has non-nil spec", func(t *testing.T) {
+		if reqBody.Spec == nil {
+			t.Error()
+		}
+	})
+	teardown()
 }
