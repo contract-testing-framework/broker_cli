@@ -3,7 +3,7 @@ broker-url: http://localhost:3000
 publish:
   type: provider
   path: ./data_test/api-spec.json
-  provider-name: user_service
+  name: user_service
 
 update-deployment:
   name: user_service

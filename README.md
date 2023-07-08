@@ -52,7 +52,7 @@ flags:
 
 -t -—type           the type of service contract (either 'consumer' or 'provider')
 
--n -—provider-name  canonical name of the provider service (only for —-type 'provider')
+-n -—name           canonical name of the provider service (only for —-type 'provider')
 
 -v -—version        service version (required for --type 'consumer')
 -—type=consumer: if flag not passed or passed without value, defaults to the git SHA of HEAD
@@ -83,7 +83,7 @@ broker-url: http://localhost:3000
 publish:
   type: provider
   path: ./data_test/api-spec.json
-  provider-name: user_service
+  name: user_service
 ```
 
 #### Publishing a Consumer Contract (binary - with explicit flags)

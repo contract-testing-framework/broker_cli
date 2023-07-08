@@ -60,7 +60,7 @@ func TestPublishNoProviderName(t *testing.T) {
 		"--type", "provider",
 	}
 	actual := callPublish(flags)
-	expected := "Error: must set --provider-name if --type is \"provider\""
+	expected := "Error: must set --name if --type is \"provider\""
 
 	actual.startsWith(expected, t)
 	teardown()
@@ -163,7 +163,7 @@ func TestPublishProviderWithoutVersion(t *testing.T) {
 		"--path=../data_test/api-spec.json",
 		"--broker-url", server.URL,
 		"--type", "provider",
-		"--provider-name", "user_service",
+		"--name", "user_service",
 	}
 	actual := callPublish(flags)
 
@@ -213,7 +213,7 @@ func TestPublishProviderWithVersionAndBranch(t *testing.T) {
 		"--path=../data_test/api-spec.json",
 		"--broker-url", server.URL,
 		"--type", "provider",
-		"--provider-name", "user_service",
+		"--name", "user_service",
 		"--version=version1",
 		"--branch=main",
 	}
@@ -248,7 +248,7 @@ func TestPublishProviderYAMLSpec(t *testing.T) {
 		"--path=../data_test/api-spec.yaml",
 		"--broker-url", server.URL,
 		"--type", "provider",
-		"--provider-name", "user_service",
+		"--name", "user_service",
 	}
 	actual := callPublish(flags)
 

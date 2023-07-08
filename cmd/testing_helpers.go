@@ -16,7 +16,6 @@ func teardown() {
 	path = ""
 	brokerURL = ""
 	branch = ""
-	providerName = ""
 	version = ""
 	contractFormat = ""
 	contract = []byte{}
