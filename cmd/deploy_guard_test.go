@@ -3,6 +3,9 @@ package cmd
 import (
 	"testing"
 	"bytes"
+	"os"
+	"os/exec"
+	"io/ioutil"
 
 	// utils "github.com/contract-testing-framework/broker_cli/utils"
 	client "github.com/contract-testing-framework/broker_cli/client"
@@ -148,49 +151,53 @@ func TestDeployGuardRequestNoVersion(t *testing.T) {
 // https://blog.antoine-augusti.fr/2015/12/testing-an-os-exit-scenario-in-golang/
 // https://sr-taj.medium.com/how-to-test-methods-that-kill-your-program-in-golang-e3b879185b8a
 
-// func TestDeployGuardRequestWhenUnsafe(t *testing.T) {
-// 	respBody := client.DeployGuardResponse{
-// 		Status: false,
-// 		Errors: []client.DeployGuardError{
-// 			client.DeployGuardError{
-// 				Title: "incompatible consumer",
-// 				Details: "service_1 is incompatible with this service as its provider",
-// 			},
-// 		},
-// 	}
+func TestDeployGuardRequestWhenUnsafe(t *testing.T) {
+	respBody := client.DeployGuardResponse{
+		Status: false,
+		Errors: []client.DeployGuardError{
+			client.DeployGuardError{
+				Title: "incompatible consumer",
+				Details: "service_1 is incompatible with this service as its provider",
+			},
+		},
+	}
 
-// 	server, req := mockServerForDeployGuardReq200OK(t, respBody)
-// 	defer server.Close()
+	server, _ := mockServerForDeployGuardReq200OK(t, respBody)
+	defer server.Close()
 
-// 	flags := []string{
-// 		"--broker-url", server.URL,
-// 		"--name", "user_service",
-// 		"--version=version1",
-// 		"--environment", "production",
-// 	}
-// 	actual := callDeployGuard(flags)
+	flags := []string{
+		"--broker-url", server.URL,
+		"--name", "user_service",
+		"--version=version1",
+		"--environment", "production",
+	}
 
-// 	t.Run("prints 'Unsafe To Deploy' to stdout", func(t *testing.T) {
-// 		expected := colorRed + "Unsafe to Deploy"
-// 		actual.startsWith(expected, t)
-// 	})
+	if os.Getenv("OKAY_TO_EXIT_1") == "true" {
+		_ = callDeployGuard(flags)
+	}
 
-// 	t.Run("request has providerName query param", func(t *testing.T) {
-// 		if req.URL.Query().Get("providerName") != "user_service" {
-// 			t.Error()
-// 		}
-// 	})
+	cmd := exec.Command(os.Args[0], "-test.run=TestDeployGuardRequestWhenUnsafe")
+	cmd.Env = append(os.Environ(), "OKAY_TO_EXIT_1=true")
+	stdout, _ := cmd.StderrPipe()
+	if err := cmd.Start(); err != nil {
+		t.Error(err)
+	}
 
-// 	t.Run("request has participantVersion query param", func(t *testing.T) {
-// 		if req.URL.Query().Get("participantVersion") != "version1" {
-// 			t.Error()
-// 		}
-// 	})
+	outBytes, _ := ioutil.ReadAll(stdout)
+	actual := actualOut{actual: string(outBytes)}
 
-// 	t.Run("request has environmentName query param", func(t *testing.T) {
-// 		if req.URL.Query().Get("environmentName") != "production" {
-// 			t.Error()
-// 		}
-// 	})
-// 	teardown()
-// }
+	t.Run("prints 'Unsafe To Deploy' to stdout", func(t *testing.T) {
+		expected := colorRed + "Unsafe to Deploy"
+		actual.startsWith(expected, t)
+	})
+	
+	err := cmd.Wait()
+	t.Run("exits with exit code 1", func(t *testing.T) {
+		e, ok := err.(*exec.ExitError)
+		if !ok || e.Success() {
+			t.Error()
+		}
+	})
+
+	teardown()
+}
