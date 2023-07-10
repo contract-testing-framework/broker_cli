@@ -9,6 +9,7 @@ import (
 	"os"
 
 	utils "github.com/contract-testing-framework/broker_cli/utils"
+	client "github.com/contract-testing-framework/broker_cli/client"
 )
 
 func teardown() {
@@ -105,6 +106,33 @@ func mockServerForGetSpecsReq200OK(t *testing.T) (*httptest.Server, *http.Reques
 			t.Error("Failed to load spec for mock response")
 		}
 		_, err = w.Write(specBytes)
+		if err != nil {
+			t.Error("Failed to write spec to mock response body")
+		}
+	}))
+
+	return server, &req
+}
+
+func mockServerForDeployGuardReq200OK(t *testing.T, respBody client.DeployGuardResponse) (*httptest.Server, *http.Request) {
+	var req http.Request
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		req = *r
+
+		w.WriteHeader(http.StatusOK)
+		w.Header().Set("Content-Type", "application/json")
+
+		// specBytes, err := os.ReadFile("../data_test/api-spec.json")
+		// if err != nil {
+		// 	t.Error("Failed to load spec for mock response")
+		// }
+
+		jsonData, err := json.Marshal(respBody)
+		if err != nil {
+			t.Error("Failed to encode mock response body")
+		}
+
+		_, err = w.Write(jsonData)
 		if err != nil {
 			t.Error("Failed to write spec to mock response body")
 		}

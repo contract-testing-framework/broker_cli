@@ -3,7 +3,6 @@ package cmd
 import (
 	"errors"
 	"os"
-	"fmt"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -58,10 +57,10 @@ var deployGuardCmd = &cobra.Command{
 		}
 
 		if ok {
-			fmt.Println(colorGreen + "Safe To Deploy" + colorReset + " - version " + version + " of " + name + " is compatible with all other services in " + environment + " environment")
+			cmd.Println(colorGreen + "Safe To Deploy" + colorReset + " - version " + version + " of " + name + " is compatible with all other services in " + environment + " environment")
 		} else {
-			fmt.Println(colorRed + "Unsafe to Deploy" + colorReset + " - version " + version + " of " + name + " is incompatible with one or more services in " + environment + " environment")
-			fmt.Println("Check the Signet GUI for details on which integration is incompatible")
+			cmd.Println(colorRed + "Unsafe to Deploy" + colorReset + " - version " + version + " of " + name + " is incompatible with one or more services in " + environment + " environment")
+			cmd.Println("Check the Signet GUI for details on which integration is incompatible")
 			os.Exit(1)
 		}
 
