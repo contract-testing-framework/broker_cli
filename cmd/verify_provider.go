@@ -31,7 +31,7 @@ var testCmd = &cobra.Command{
 
 	-n --name 					the name of the provider service
 
-	-v --version        the version of the provider service
+	-v --version        the version of the provider service (defaults to git SHA of HEAD)
 
 	-b --branch         Version control branch (optional)
 
@@ -132,10 +132,9 @@ func init() {
 	RootCmd.AddCommand(testCmd)
 
 	testCmd.Flags().StringVarP(&name, "name", "n", "", "The name of the service which was deployed")
-	testCmd.Flags().StringVarP(&version, "version", "v", "", "The version of the service which was deployed")
+	testCmd.Flags().StringVarP(&version, "version", "v", "auto", "The version of the service which was deployed")
 	testCmd.Flags().StringVarP(&branch, "branch", "b", "", "Version control branch (optional)")
 	testCmd.Flags().StringVarP(&providerURL, "provider-url", "s", "", "The URL where the provider service is running")
-	testCmd.Flags().Lookup("version").NoOptDefVal = "auto"
 	testCmd.Flags().Lookup("branch").NoOptDefVal = "auto"
 
 	viper.BindPFlag("test.name", testCmd.Flags().Lookup("name"))

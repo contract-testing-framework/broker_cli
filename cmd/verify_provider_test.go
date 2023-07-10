@@ -137,8 +137,8 @@ func TestPublishProviderUtilWithoutVersion(t *testing.T) {
 		}
 	})
 
-	t.Run("has a providerVersion", func(t *testing.T) {
-		if len(reqBody.ProviderVersion) == 0 {
+	t.Run("has a providerVersion and it is not 'auto'", func(t *testing.T) {
+		if len(reqBody.ProviderVersion) == 0 || reqBody.ProviderVersion == "auto" {
 			t.Error()
 		}
 	})

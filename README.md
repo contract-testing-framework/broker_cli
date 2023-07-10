@@ -84,9 +84,9 @@ flags:
 
 -n --name           the name of the provider service
 
--v --version        the version of the provider service (required, passing --version without a value will default to git SHA of HEAD)
+-v --version        the version of the provider service (defaults to git SHA of HEAD)
 
--b --branch         version control branch (passing --branch without a value will default to git branch of HEAD)
+-b --branch         version control branch (passing --branch without a value will default to git branch of HEAD, also defaults if --version)
 
 -s --provider-url   the URL where the provider service is running
 
