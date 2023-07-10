@@ -178,7 +178,11 @@ func PublishProvider(path string, brokerURL string, ProviderName, version, branc
 	}
 
 	if version == "auto" {
-		SetVersionToGitSha(version)
+		var err error
+		version, err = SetVersionToGitSha(version)
+		if err != nil {
+			return err
+		}
 	}
 
 	spec, specFormat, err := LoadSpec(path)
