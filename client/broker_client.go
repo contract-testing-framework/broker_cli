@@ -28,6 +28,16 @@ func logHTTPErrorThenExit(resp *http.Response) error {
 	return nil
 }
 
+type DeployGuardResponse struct {
+	Status bool `json:"status"`
+	Errors []DeployGuardError `json:"errors"`
+}
+
+type DeployGuardError struct {
+	Title string `json:"title"`
+	Details string `json:"details"`
+}
+
 /* ---------- client pkg ---------- */
 
 func PublishToBroker(brokerURL string, jsonData []byte) error {
@@ -116,4 +126,29 @@ func GetLatestSpec(brokerURL, name string) ([]byte, error) {
 	}
 
 	return bodyBytes, nil
+}
+
+func CheckDeployGuard(brokerURL, name, version, environment string) (bool, error) {
+	deployGuardURL := brokerURL + "/api/deploy?providerName=" + name + "&participantVersion=" + version + "&environmentName=" + environment
+
+	resp, err := http.Get(deployGuardURL)
+	if err != nil {
+		return false, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != 200 {
+		err = logHTTPErrorThenExit(resp)
+		if err != nil {
+			return false, err
+		}
+	}
+
+	var respBody DeployGuardResponse
+	err = json.NewDecoder(resp.Body).Decode(&respBody)
+	if err != nil {
+		return false, err
+	}
+
+	return respBody.Status, nil
 }

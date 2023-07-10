@@ -11,3 +11,6 @@ update-deployment:
 test:
   name: user_service
   provider-url: http://localhost:3002
+
+deploy-guard:
+  name: user_service

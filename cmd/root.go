@@ -18,6 +18,7 @@ var path string
 var name string
 var version string
 var branch string
+var environment string
 
 // rootCmd represents the base command when called without any subcommands
 var RootCmd = &cobra.Command{
