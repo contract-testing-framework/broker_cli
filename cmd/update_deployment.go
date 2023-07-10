@@ -12,7 +12,6 @@ import (
 	utils "github.com/contract-testing-framework/broker_cli/utils"
 )
 
-var environment string
 var delete bool
 
 var updateDeploymentCmd = &cobra.Command{
