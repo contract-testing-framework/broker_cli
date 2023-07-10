@@ -109,6 +109,40 @@ test:
 signet test --broker-url=http://localhost:3000 --provider-url=http://localhost:3002 --name=example-provider --version=version1 --branch
 ```
 
+## `signet deploy-guard`
+- The `deploy-guard` command checks whether a service version can be safely deployed to an environment without introducing any breakages with other services in that environemnt. The `deploy-guard` command will fail (with an exit code of 1) if any of the following conditions are NOT met: 
+
+1. The service is compatible with all of its consumers which are deployed in the environment
+2. All of the service's providers are deployed in the environment
+3. All of the service's providers are compatible with the service.
+
+- If any of these are not true, the service version cannot be safely deployed to the environemnt, because doing so would either break the service or break one of its consumers.
+	
+```bash
+flags:
+
+-n --name 					the name of the service
+
+-v --version        the version of the service (defaults to git SHA of HEAD)
+
+-e --environment		the name of the environment that the service is deployed to (ex. production)
+
+-u --broker-url     the scheme, domain, and port where the Signet Broker is being hosted (ex. http://localhost:3000)
+
+-i --ignore-config  ingore .signetrc.yaml file if it exists
+```
+- `.signetrc.yaml` supports these flags for `deploy-guard`:
+```yaml
+broker-url: http://localhost:3000
+
+deploy-guard:
+  name: user_service
+```
+#### Check if it is safe to deploy a new version of a service
+```bash
+signet deploy-guard --broker-url=http://localhost:3000 --name=example-provider --version=version1 --environment=production
+```
+
 ## `signet update-deployment`
 
 - The `update-deployment` command informs the Signet broker of which service versions are currently deployed in an environment. If broker does not already know about the `--environment`, it will create it.
