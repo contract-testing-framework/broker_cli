@@ -15,6 +15,41 @@ npm install -g signet-cli
 Every signet command supports `--help` flag, for example:
 `signet publish --help`
 
+## `signet proxy`
+
+- The `signet proxy` command is used to automatically generate a consumer contract by recording requests and responses generated during unit and service tests. `signet proxy` starts up a server that acts as a transparent proxy between the consumer service under test and the mock or stub of the provider service. `signet proxy` captures the requests and responses between the two, and automatically generates a valid consumer contract. `signet proxy` uses Mountebank to record the messages, and then transforms Mountebank's output into a Pact-complient consumer contract.
+
+```bash
+flags:
+
+-o --port           the port that signet proxy should run on
+
+-t --target         the URL of the running provider stub or mock
+
+-p --path           the relative path and filename that the consumer contract will be written to
+
+-n -—name           the canonical name of the consumer service
+
+-m --provider-name  the canonical name of the provider service that the mock or stub represents
+
+-i --ignore-config  ingore .signetrc.yaml file if it exists
+```
+- `.signetrc.yaml` supports these flags for `signet proxy`:
+```yaml
+broker-url: http://localhost:3000
+
+proxy:
+  path: ./contracts/cons-prov.json
+  port: 3004
+  target: http://localhost:3002
+  name: service_1
+  provider-name: user_service
+```
+#### Using Signet Proxy (with explicit flags)
+```bash
+signet proxy --port 3005 --target http://localhost:3002 --path ./contracts/contract.json --name service_1 --provider-name user_service
+```
+
 ## `signet publish`
 
 - The `publish` command pushes a local contract or API spec to the broker. This automatically triggers contract/spec comparison if the broker already has a contract or API spec for the other participant in the integration.
