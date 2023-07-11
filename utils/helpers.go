@@ -238,13 +238,17 @@ func CreatePact(stubsPath string, pactPath string, consumerName string, provider
 	interactions, err := createInteractions(matchPaths)
 	pact["interactions"] = interactions
 
+	if len(interactions) == 0 {
+		return nil, false
+	}
+
 	err = WritePact(pact, pactPath)
 
 	if err != nil {
 		return err, false
 	}
 
-	return err, true
+	return nil, true
 }
 
 func GetMatchPaths(stubsPath string) ([]string, error) {
@@ -283,6 +287,7 @@ func createInteractions(matchPaths []string) ([]map[string]interface{}, error) {
 
 	for _, matchPath := range matchPaths {
 		matchBytes, err := os.ReadFile(matchPath)
+
 		if err != nil {
 			return []map[string]interface{}{}, err
 		}
