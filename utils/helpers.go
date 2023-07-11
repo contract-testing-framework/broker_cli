@@ -238,6 +238,10 @@ func CreatePact(stubsPath string, pactPath string, consumerName string, provider
 	interactions, err := createInteractions(matchPaths)
 	pact["interactions"] = interactions
 
+	if err != nil {
+		return err, false
+	}
+
 	if len(interactions) == 0 {
 		return nil, false
 	}
