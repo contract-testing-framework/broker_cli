@@ -14,3 +14,10 @@ test:
 
 deploy-guard:
   name: user_service
+
+proxy:
+  path: ./contracts/cons-prov.json
+  port: 3005
+  target: http://localhost:3002
+  name: service_1
+  provider-name: user_service
