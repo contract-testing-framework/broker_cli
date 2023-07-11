@@ -17,7 +17,7 @@ deploy-guard:
 
 proxy:
   path: ./contracts/cons-prov.json
-  port: 3005
+  port: 3004
   target: http://localhost:3002
   name: service_1
   provider-name: user_service

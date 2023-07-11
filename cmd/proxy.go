@@ -5,12 +5,13 @@ import (
 	"os"
 	"os/exec"
 	"os/signal"
-	"fmt"
+	"strconv"
+	"encoding/json"
 	
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-	// utils "github.com/contract-testing-framework/broker_cli/utils"
+	utils "github.com/contract-testing-framework/broker_cli/utils"
 )
 
 var port string
@@ -48,7 +49,7 @@ var proxyCmd = &cobra.Command{
 			return err
 		}
 
-		// the function comes from verify_provider.go
+		// this function comes from verify_provider.go
 		signetRoot, err := getNpmPkgRoot()
 		if err != nil {
 			return err
@@ -58,12 +59,15 @@ var proxyCmd = &cobra.Command{
 		dataDir := signetRoot + "/mbdata"
 		// stubsDir := dataDir + "/" + port + "/stubs"
 
+		err = setupMbConfig(port, target, configPath)
+		if err != nil {
+			return err
+		}
+
 		mbCmd := exec.Command("npx", mbPath, "--configfile", configPath, "--datadir", dataDir, "--debug", "--nologfile")
 		err = mbCmd.Start()
-
 		if err != nil {
-			fmt.Println("failed to start mountebank")
-			return err
+			return errors.New("failed to start mountebank: " + err.Error())
 		}
 
 		cmd.Println(colorGreen + "Listening" + colorReset + " - Signet proxy is listening on port " + port + " and will proxy messages for " + target)
@@ -78,7 +82,7 @@ var proxyCmd = &cobra.Command{
 				err, ok = // call Eric's functions here !
 
 				// in-scope variables for arguments:
-					// stubsDir     -> uncomment line 59 above
+					// stubsDir     -> uncomment line 60 above
 					// path         -> write the pact to this file name (relative)
 					// name         -> the name of the consumer
 					// providerName -> the name of the provider
@@ -101,8 +105,7 @@ var proxyCmd = &cobra.Command{
 
 		err = mbCmd.Wait()
 		if err != nil {
-			fmt.Println("Warn: Mountebank exited early...")
-			return err
+			return errors.New("mountebank exited early: " + err.Error())
 		}
 
 		return nil
@@ -128,6 +131,44 @@ func validateProxyFlags(path, port, target, name, providerName string) error {
 
 	if len(providerName) == 0 {
 		return errors.New("No --provider-name was provided. This is a required flag.")
+	}
+
+	return nil
+}
+
+func setupMbConfig(port, target, configPath string) error {
+	portInt, err := strconv.Atoi(port)
+	if err != nil {
+		return err
+	}
+	
+	proxyConfig := utils.ProxyConfig{
+		Port: portInt,
+		Name: "signet-proxy",
+		Protocol: "http",
+		Stubs: []utils.MbStub{
+			utils.MbStub{
+				Responses: []utils.MbResponse{
+					utils.MbResponse{
+						Proxy: utils.MbProxy{
+							To: target,
+							Mode: "proxyOnce",
+						},
+					},
+				},
+			},
+		},
+	}
+
+	jsonBytes, err := json.Marshal(proxyConfig)
+	if err != nil {
+		return err
+	}
+
+	// this function comes from verify_provider.go
+	err = osWriteFile(configPath, jsonBytes, rwPermissions)
+	if err != nil {
+		return errors.New("failed to write mountebank config file: " + err.Error())
 	}
 
 	return nil

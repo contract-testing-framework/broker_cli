@@ -36,3 +36,23 @@ type DeploymentBody struct {
 	ParticipantVersion string `json:"participantVersion"`
 	Deployed 					 bool 	`json:"deployed"`
 }
+
+type MbProxy struct {
+	To string `json:"to"`
+	Mode string `json:"mode"`
+}
+
+type MbResponse struct {
+	Proxy MbProxy `json:"proxy"`
+}
+
+type MbStub struct {
+	Responses []MbResponse `json:"responses"`
+}
+
+type ProxyConfig struct {
+	Port     int          `json:"port"`
+	Name     string       `json:"name"`
+	Protocol string       `json:"protocol"`
+	Stubs    []MbStub `json:"stubs"`
+}
