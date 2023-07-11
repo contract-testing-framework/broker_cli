@@ -4,8 +4,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io/fs"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"regexp"
 
 	client "github.com/contract-testing-framework/broker_cli/client"
@@ -156,7 +158,7 @@ func PublishConsumer(path string, brokerURL string, version, branch string) erro
 		return err
 	}
 
-	err = client.PublishToBroker(brokerURL + "/api/contracts", requestBody)
+	err = client.PublishToBroker(brokerURL+"/api/contracts", requestBody)
 	if err != nil {
 		return err
 	}
@@ -195,7 +197,7 @@ func PublishProvider(path string, brokerURL string, ProviderName, version, branc
 		return err
 	}
 
-	err = client.PublishToBroker(brokerURL + "/api/specs", requestBody)
+	err = client.PublishToBroker(brokerURL+"/api/specs", requestBody)
 	if err != nil {
 		return err
 	}
@@ -214,12 +216,145 @@ func GetNpmPkgRoot() (string, error) {
 	if err != nil {
 		return "", errors.New("Could not find npm root")
 	}
-	
+
 	if len(stdoutStderr) < 1 {
 		return "", errors.New("npm root path was empty string")
 	}
 
-	pkgRoot := string(stdoutStderr[:len(stdoutStderr) - 1]) + "/signet-cli"
+	pkgRoot := string(stdoutStderr[:len(stdoutStderr)-1]) + "/signet-cli"
 
 	return pkgRoot, nil
+}
+
+func CreatePact(stubsPath string, pactPath string, consumerName string, providerName string) (error, bool) {
+
+	pact := CreateDefaultPact(pactPath, consumerName, providerName)
+	matchPaths, err := GetMatchPaths(stubsPath)
+
+	if err != nil {
+		return err, false
+	}
+
+	interactions, err := createInteractions(matchPaths)
+	pact["interactions"] = interactions
+
+	err = WritePact(pact, pactPath)
+
+	if err != nil {
+		return err, false
+	}
+
+	return err, true
+}
+
+func GetMatchPaths(stubsPath string) ([]string, error) {
+	matchPaths := []string{}
+
+	filepath.WalkDir(stubsPath, func(path string, d fs.DirEntry, err error) error {
+		dir := filepath.Dir(path)
+		parent := filepath.Base(dir)
+
+		if parent == "matches" {
+			matchPaths = append(matchPaths, path)
+		}
+		return err
+	})
+	return matchPaths, nil
+}
+
+func WritePact(pact map[string]interface{}, pactPath string) error {
+	CreatePactDir(pactPath)
+	//fmt.Print(pact)
+	file, _ := json.MarshalIndent(pact, "", " ")
+
+	err := os.WriteFile(pactPath, file, 0644)
+
+	return err
+}
+
+func CreatePactDir(pactDir string) error {
+	err := os.MkdirAll(filepath.Dir(pactDir), os.ModePerm)
+
+	return err
+}
+
+func createInteractions(matchPaths []string) ([]map[string]interface{}, error) {
+	interactions := []map[string]interface{}{}
+
+	for _, matchPath := range matchPaths {
+		matchBytes, err := os.ReadFile(matchPath)
+		if err != nil {
+			return []map[string]interface{}{}, err
+		}
+
+		match := map[string]interface{}{}
+		err = json.Unmarshal(matchBytes, &match)
+
+		if err != nil {
+			return []map[string]interface{}{}, err
+		}
+
+		interaction := map[string]interface{}{}
+
+		request := match["request"].(map[string]any)
+		response := match["response"].(map[string]any)
+
+		interaction["description"] = fmt.Sprintf("%s %s %.0f", request["method"], request["path"], response["statusCode"])
+
+		/*
+			var requestBody map[string]interface{}
+
+			if request["body"] != "" {
+				err = json.Unmarshal([]byte(request["body"].(string)), &requestBody)
+			}
+		*/
+
+		/*
+			var requestQuery string
+
+			if len(request["query"].(map[string]interface{})) > 0 {
+				params := url.Values{}
+
+				for key, values := range request["query"].(map[string]interface{}) {
+					for _, value := range values.([]interface{}) {
+						params.Add(key, value.(string))
+					}
+				}
+				requestQuery = url.Values(params).Encode()
+			}*/
+
+		interaction["request"] = map[string]interface{}{
+			"method":  request["method"],
+			"path":    request["path"],
+			"body":    request["body"],
+			"query":   request["query"],
+			"headers": request["headers"],
+		}
+
+		interaction["response"] = map[string]interface{}{
+			"status":  response["statusCode"],
+			"headers": response["headers"],
+			"body":    response["body"],
+		}
+
+		interactions = append(interactions, interaction)
+	}
+	return interactions, nil
+}
+
+func CreateDefaultPact(pactPath string, consumerName string, providerName string) (contract map[string]interface{}) {
+	return map[string]interface{}{
+		"consumer": map[string]interface{}{
+			"name": consumerName,
+		},
+		"provider": map[string]interface{}{
+			"name": providerName,
+		},
+		"interactions": nil,
+		"metadata": map[string]interface{}{
+			"pactSpecification": map[string]interface{}{
+				"version": "3.0.0",
+			},
+		},
+	}
 }
