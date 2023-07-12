@@ -2,203 +2,144 @@ package cmd
 
 import (
 	"bufio"
-	"context"
 	"errors"
 	"fmt"
-	"log"
 	"os/exec"
 	"regexp"
-	"strings"
-	"sync"
 
 	"github.com/spf13/cobra"
-	// "github.com/spf13/viper"
-	// utils "github.com/contract-testing-framework/broker_cli/utils"
+	"github.com/spf13/viper"
 )
 
-const contextName = "signetecscontext"
+var ecsContext string
+var silent bool
+var destroy bool
 
 var deployCmd = &cobra.Command{
 	Use:   "deploy",
 	Short: "Deploy the Signet broker to you AWS account on ECS with Fargate",
-	Long:  `Deploy the Signet broker to you AWS account on ECS with Fargate`,
+	Long:  `Deploy the Signet broker to you AWS account on ECS with Fargate
+	
+	flags:
+
+	-c --ecs-context           the name of the local docker ecs context with AWS credentials
+	
+	-s -—silent                (bool) silence docker's status updates as it provisions AWS infrastructure
+
+	-d --destroy               (bool) causes the Signet broker to be torn down from AWS instead of deployed
+	`,
 	RunE: func(cmd *cobra.Command, args []string) error {
+		ecsContext = viper.GetString("deploy.ecs-context")
+		silent = viper.GetBool("deploy.silent")
 
-		checkContextCmd := exec.Command("docker", "context", "list")
-		stdoutStderr, err := checkContextCmd.CombinedOutput()
-		checkContextOutput := string(stdoutStderr)
-
-		if err != nil && len(checkContextOutput) == 0 {
-			return errors.New("failed to check for existing docker context. Is docker running? - " + err.Error())
-		}
-
-		found, err := regexp.MatchString(contextName, checkContextOutput)
-		if err != nil {
+		if err := checkEcsContextExists(ecsContext); err != nil {
 			return err
 		}
 
-		if !found {
-			fmt.Println("Docker context not found. Please run 'docker context create ecs signetecscontext' and setup your AWS credentials")
-			return nil
-		}
-
-		ctx := context.Background()
-
-		changeCtxCmd := exec.Command("docker", "context", "use", contextName)
-		err = changeCtxCmd.Start()
+		currentDockerContext, err := cacheCurrentDockerContext()
 		if err != nil {
 			return err
 		}
-		err = changeCtxCmd.Wait()
-		if err != nil {
+	
+		if exec.Command("docker", "context", "use", ecsContext).Run(); err != nil {
 			return err
 		}
 
-		err = RunCmd(ctx, "docker compose -p signet-broker -f signet-broker/docker-compose.yml up")
-		if err != nil {
-			fmt.Println("THIS ONE")
+		fmt.Println("Info: deploying Signet broker to your AWS cloud using ECS with Fargate, this may take a few minutes...")
+		if err = deploySignet(silent, destroy); err != nil {
 			return err
 		}
 
-		if err != nil {
-			log.Fatal(err)
-		}
+		fmt.Println(colorGreen + "Signet deployed" + colorReset + " - the Signet broker has been deployed to your AWS cloud")
 
-		log.Println("done")
+		// it is okay if this command is not successful
+		_ = exec.Command("docker", "context", "use", currentDockerContext).Run()
 
-		// var wg sync.WaitGroup
-		// wg.Add(1)
-
-		// ecsUpCmd := exec.Command("docker", "compose", "up", "--context", contextName)
-		// stdout, _ := ecsUpCmd.StdoutPipe()
-
-		// scanner := bufio.NewScanner(stdout)
-		// go func() {
-		// 	for scanner.Scan() {
-		// 		log.Printf("out: %s", scanner.Text())
-		// 	}
-		// 	wg.Done()
-		// }()
-		// // https://gobyexample.com/waitgroups
-		// err = ecsUpCmd.Start()
-		// if err != nil {
-		// 	return errors.New("docker failed to deploy Signet broker to ECS" + err.Error())
+		// if err = exec.Command("docker", "context", "use", currentDockerContext).Run(); err != nil {
+		// 	fmt.Println("Errored on line 56")
+		// 	return err
 		// }
-
-		// wg.Wait()
-
-		// // scanner := bufio.NewScanner(stdout)
-		// // scanner.Split(bufio.ScanWords)
-		// // for scanner.Scan() {
-		// //     m := scanner.Text()
-		// //     fmt.Println(m)
-		// // }
-
-		// ecsUpCmd.Wait()
-
-		fmt.Println("HEY, SIGNET IS DONE DEPLOYING")
 
 		return nil
 	},
 }
 
-// https://gist.github.com/hivefans/ffeaf3964924c943dd7ed83b406bbdea
-
-func init() {
-	RootCmd.AddCommand(deployCmd)
+func checkEcsContextExists(context string) error {
+	checkContextCmd := exec.Command("docker", "context", "list")
+	stdoutStderr, err := checkContextCmd.CombinedOutput()
+	checkContextOutput := string(stdoutStderr)
+	
+	if err != nil && len(checkContextOutput) == 0 {
+		return errors.New("failed to check for existing docker context. Is docker running? - " + err.Error())
+	}
+	
+	found, err := regexp.MatchString(context, checkContextOutput)
+	if err != nil {
+		return err
+	}
+	
+	if !found {
+		return errors.New("docker context not found for --ecs-context. Please run 'docker context create ecs <context-name>' and follow the prompts to configure your AWS credentials")
+	}
+	
+	return nil
 }
 
-/*
-? check if there is a myecscontext docker context
-if not, run docker context create
-	after the user adds creds, return control to signet cli
-run docker compose up
+func cacheCurrentDockerContext() (string, error) {
+	getContextCmd := exec.Command("docker", "context", "show")
+	stdoutStderr, err := getContextCmd.CombinedOutput()
+	if err != nil {
+		return "", err
+	}
 
-*/
+	if len(stdoutStderr) == 0 {
+		return "", errors.New("could not get current docker context")
+	}
 
-// package main
+	return string(stdoutStderr[:len(stdoutStderr) - 1]), nil
+}
 
-// import (
-// 	"bufio"
-// 	"fmt"
-// 	"io"
-// 	"os"
-// 	"os/exec"
-// 	"strings"
-// )
-
-// func execPrint() {
-// 	cmdName := "ping 127.0.0.1"
-// 	cmdArgs := strings.Fields(cmdName)
-
-// 	cmd := exec.Command(cmdArgs[0], cmdArgs[1:len(cmdArgs)]...)
-// 	stdout, _ := cmd.StdoutPipe()
-// 	cmd.Start()
-// 	oneByte := make([]byte, 100)
-// 	num := 1
-// 	for {
-// 		_, err := stdout.Read(oneByte)
-// 		if err != nil {
-// 			fmt.Printf(err.Error())
-// 			break
-// 		}
-// 		r := bufio.NewReader(stdout)
-// 		line, _, _ := r.ReadLine()
-// 		fmt.Println(string(line))
-// 		num = num + 1
-// 		if num > 3 {
-// 			os.Exit(0)
-// 		}
-// 	}
-
-// 	cmd.Wait()
-// }
-
-func RunCmd(ctx context.Context, cmdstr string) error {
-	args := strings.Fields(cmdstr)
-	cmd := exec.CommandContext(ctx, args[0], args[1:]...)
-
-	stdout, err := cmd.StdoutPipe()
+func deploySignet(silent, destory bool) error {
+	signetRoot, err := getNpmPkgRoot()
 	if err != nil {
 		return err
 	}
 
-	var wg sync.WaitGroup
-	wg.Add(1)
-
-	scanner := bufio.NewScanner(stdout)
-	go func() {
-		for scanner.Scan() {
-			log.Printf("out: %s", scanner.Text())
-		}
-		wg.Done()
-	}()
-
-	if err = cmd.Start(); err != nil {
+	upDown := "up"
+	if destory {
+		upDown = "down"
+	}
+	
+	signetUpCmd := exec.Command("docker", "compose", "--project-name=signetbroker", "--file=" + signetRoot + "/docker-compose.yml", upDown)
+	stderr, err := signetUpCmd.StderrPipe()
+	if err != nil {
 		return err
 	}
 
-	wg.Wait()
-
-	return cmd.Wait()
+	if !silent {
+		go func() {
+			scanner := bufio.NewScanner(stderr)
+			for scanner.Scan() {
+				fmt.Println(scanner.Text())
+			}
+		}()
+	}
+	
+	err = signetUpCmd.Run()
+	if err != nil {
+		return err
+	}
+	
+	return nil
 }
+	
+func init() {
+	RootCmd.AddCommand(deployCmd)
 
-// func main() {
-//   cmd := exec.Command("ping", "127.0.0.1")
-//   stdout, err := cmd.StdoutPipe()
-//   if err != nil {
-//     log.Fatal(err)
-//   }
-//   cmd.Start()
+	deployCmd.Flags().StringVarP(&ecsContext, "ecs-context", "c", "", "the name of the local docker ecs context with AWS credentials")
+	deployCmd.Flags().BoolVarP(&silent, "silent", "s", false, "silence docker's status updates as it provisions AWS infrastructure")
+	deployCmd.Flags().BoolVarP(&destroy, "destroy", "d", false, "causes the Signet broker to be torn down from AWS instead of deployed")
 
-//   buf := bufio.NewReader(stdout) // Notice that this is not in a loop
-//   num := 1
-//   for {
-//     line, _, _ := buf.ReadLine()
-//     if num > 3 {
-//       os.Exit(0)
-//     }
-//     num += 1
-//     fmt.Println(string(line))
-//   }
-// }
+	viper.BindPFlag("deploy.ecs-context", deployCmd.Flags().Lookup("ecs-context"))
+	viper.BindPFlag("deploy.silent", deployCmd.Flags().Lookup("silent"))
+}
