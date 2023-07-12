@@ -310,11 +310,25 @@ func createInteractions(matchPaths []string) ([]map[string]interface{}, error) {
 
 		interaction["description"] = fmt.Sprintf("%s %s %.0f", request["method"], request["path"], response["statusCode"])
 
-		contentTypeHeader := map[string]interface{}{
-			"Content-Type": request["headers"].(map[string]any)["Content-Type"]}
+		requestHeaders := map[string]interface{}{}
 
-		if contentTypeHeader["Content-Type"] == nil {
-			contentTypeHeader = map[string]interface{}{}
+		requestContentType := request["headers"].(map[string]any)["Content-Type"]
+		requestAccept := request["headers"].(map[string]any)["Accept"]
+
+		if requestContentType != nil {
+			requestHeaders["Content-Type"] = requestContentType
+		}
+
+		if requestAccept != nil {
+			requestHeaders["Accept"] = requestAccept
+		}
+
+		responseHeaders := map[string]interface{}{}
+
+		responseContentType := response["headers"].(map[string]any)["Content-Type"]
+
+		if responseContentType != nil {
+			responseHeaders["Content-Type"] = responseContentType
 		}
 
 		interaction["request"] = map[string]interface{}{
@@ -322,13 +336,12 @@ func createInteractions(matchPaths []string) ([]map[string]interface{}, error) {
 			"path":    request["path"],
 			"body":    request["body"],
 			"query":   request["query"],
-			"headers": contentTypeHeader,
+			"headers": requestHeaders,
 		}
 
 		interaction["response"] = map[string]interface{}{
 			"status":  response["statusCode"],
-			"headers": map[string]interface{}{
-				"Content-Type": response["headers"].(map[string]any)["Content-Type"]},
+			"headers": responseHeaders,
 			"body":    response["body"],
 		}
 
