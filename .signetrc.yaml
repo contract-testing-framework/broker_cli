@@ -1,9 +1,9 @@
 broker-url: http://localhost:3000
 
 publish:
-  type: provider
-  path: ./data_test/api-spec.json
-  name: user_service
+  type: consumer
+  path: ./contracts/cons-prov.json
+  name: service_1
 
 update-deployment:
   name: user_service
@@ -14,3 +14,10 @@ test:
 
 deploy-guard:
   name: user_service
+
+proxy:
+  path: ./contracts/cons-prov.json
+  port: 3004
+  target: http://localhost:3002
+  name: service_1
+  provider-name: user_service
