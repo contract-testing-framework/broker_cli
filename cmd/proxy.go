@@ -7,6 +7,7 @@ import (
 	"os/signal"
 	"strconv"
 	"encoding/json"
+	"log"
 	
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -57,7 +58,7 @@ var proxyCmd = &cobra.Command{
 		mbPath := signetRoot + "/node_modules/mountebank"
 		configPath := signetRoot + "/config.ejs"
 		dataDir := signetRoot + "/mbdata"
-		// stubsDir := dataDir + "/" + port + "/stubs"
+		stubsDir := dataDir + "/" + port + "/stubs"
 
 		err = setupMbConfig(port, target, configPath)
 		if err != nil {
@@ -79,7 +80,7 @@ var proxyCmd = &cobra.Command{
 			for _ = range c {
 				cmd.Println("\n\ngenerating consumer contract...")
 
-				err, ok = // call Eric's functions here !
+				err, ok := utils.CreatePact(stubsDir, path, name, providerName)
 
 				// in-scope variables for arguments:
 					// stubsDir     -> uncomment line 60 above
@@ -92,7 +93,7 @@ var proxyCmd = &cobra.Command{
 				// return (nil, true)    if everything worked, and a pact was successfully written
 
 				if err != nil {
-					return err
+					log.Fatal(err)
 				}
 
 				if ok {
