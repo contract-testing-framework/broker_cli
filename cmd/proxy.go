@@ -50,7 +50,6 @@ var proxyCmd = &cobra.Command{
 			return err
 		}
 
-		// this function comes from verify_provider.go
 		signetRoot, err := getNpmPkgRoot()
 		if err != nil {
 			return err
