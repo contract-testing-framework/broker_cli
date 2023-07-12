@@ -310,39 +310,25 @@ func createInteractions(matchPaths []string) ([]map[string]interface{}, error) {
 
 		interaction["description"] = fmt.Sprintf("%s %s %.0f", request["method"], request["path"], response["statusCode"])
 
-		/*
-			var requestBody map[string]interface{}
+		contentTypeHeader := map[string]interface{}{
+			"Content-Type": request["headers"].(map[string]any)["Content-Type"]}
 
-			if request["body"] != "" {
-				err = json.Unmarshal([]byte(request["body"].(string)), &requestBody)
-			}
-		*/
-
-		/*
-			var requestQuery string
-
-			if len(request["query"].(map[string]interface{})) > 0 {
-				params := url.Values{}
-
-				for key, values := range request["query"].(map[string]interface{}) {
-					for _, value := range values.([]interface{}) {
-						params.Add(key, value.(string))
-					}
-				}
-				requestQuery = url.Values(params).Encode()
-			}*/
+		if contentTypeHeader["Content-Type"] == nil {
+			contentTypeHeader = map[string]interface{}{}
+		}
 
 		interaction["request"] = map[string]interface{}{
 			"method":  request["method"],
 			"path":    request["path"],
 			"body":    request["body"],
 			"query":   request["query"],
-			"headers": request["headers"],
+			"headers": contentTypeHeader,
 		}
 
 		interaction["response"] = map[string]interface{}{
 			"status":  response["statusCode"],
-			"headers": response["headers"],
+			"headers": map[string]interface{}{
+				"Content-Type": response["headers"].(map[string]any)["Content-Type"]},
 			"body":    response["body"],
 		}
 

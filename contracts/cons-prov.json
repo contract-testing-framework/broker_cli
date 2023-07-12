@@ -7,15 +7,7 @@
    "description": "GET /users/1 200",
    "request": {
     "body": "",
-    "headers": {
-     "accept": "application/json",
-     "accept-encoding": "gzip, deflate",
-     "accept-language": "*",
-     "connection": "keep-alive",
-     "host": "localhost:3004",
-     "sec-fetch-mode": "cors",
-     "user-agent": "undici"
-    },
+    "headers": {},
     "method": "GET",
     "path": "/users/1",
     "query": {}
@@ -29,13 +21,7 @@
      "username": "mimmy"
     },
     "headers": {
-     "Connection": "keep-alive",
-     "Content-Length": "60",
-     "Content-Type": "application/json; charset=utf-8",
-     "Date": "Wed, 12 Jul 2023 00:18:23 GMT",
-     "ETag": "W/\"3c-EFeHgqRkq2quzkLqezTujCghq6k\"",
-     "Keep-Alive": "timeout=5",
-     "X-Powered-By": "Express"
+     "Content-Type": "application/json; charset=utf-8"
     },
     "status": 200
    }
