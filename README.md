@@ -15,6 +15,33 @@ npm install -g signet-cli
 Every signet command supports `--help` flag, for example:
 `signet publish --help`
 
+## `signet deploy`
+
+- The `signet deploy` command deploys the Signet broker to the users AWS account using AWS ECS with AWS Fargate. The Signet broker can be torn down by calling `signet deploy` again with the `-d` flag.
+- requies local docker engine to be running, and for AWS credentials to be available on a docker ecs context (this can be accomplished with `docker create context ecs [context name]`)
+
+```bash
+flags:
+
+-c --ecs-context    the name of the local docker ecs context with AWS credentials
+
+-s -—silent         (bool) silence docker's status updates as it provisions AWS infrastructure
+
+-d --destroy        (bool) causes the Signet broker to be torn down from AWS instead of deployed
+```
+
+- `.signetrc.yaml` supports these flags for `signet proxy`:
+```yaml
+deploy:
+  ecs-context: myecscontext
+  silent: true
+```
+
+#### Deploying the Signet Broker (with explicit flags)
+```bash
+signet deploy --ecs-context myecscontext
+```
+
 ## `signet proxy`
 
 - The `signet proxy` command is used to automatically generate a consumer contract by recording requests and responses generated during unit and service tests. `signet proxy` starts up a server that acts as a transparent proxy between the consumer service under test and the mock or stub of the provider service. `signet proxy` captures the requests and responses between the two, and automatically generates a valid consumer contract. `signet proxy` uses Mountebank to record the messages, and then transforms Mountebank's output into a Pact-complient consumer contract.
@@ -36,8 +63,6 @@ flags:
 ```
 - `.signetrc.yaml` supports these flags for `signet proxy`:
 ```yaml
-broker-url: http://localhost:3000
-
 proxy:
   path: ./contracts/cons-prov.json
   port: 3004
