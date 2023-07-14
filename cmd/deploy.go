@@ -48,7 +48,7 @@ var deployCmd = &cobra.Command{
 			return err
 		}
 
-		fmt.Println(colorGreen + "Deployed Successfully" + colorReset)
+		fmt.Println("\n" + colorGreen + "Deployed Successfully" + colorReset)
 
 		printURLofELB(cfClient, cfg)
 

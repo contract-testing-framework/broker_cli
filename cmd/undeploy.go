@@ -36,7 +36,7 @@ var undeployCmd = &cobra.Command{
 			return err
 		}
 
-		fmt.Println(colorGreen + "Undeployed Successfully")
+		fmt.Println("\n" + colorGreen + "Undeployed Successfully")
 
 		return nil
 	},
