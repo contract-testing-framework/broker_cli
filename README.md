@@ -203,11 +203,11 @@ signet update-deployment --broker-url=http://localhost:3000 --name=example-provi
 ```bash
 flags:
 
--n --name 					the name of the service
+-n --name           the name of the service
 
 -v --version        the version of the service (defaults to git SHA of HEAD if no value is provided)
 
--e --environment		the name of the environment that the service is deployed to (ex. production)
+-e --environment    the name of the environment that the service is deployed to (ex. production)
 
 -u --broker-url     the scheme, domain, and port where the Signet Broker is being hosted
 
