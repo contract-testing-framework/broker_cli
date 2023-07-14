@@ -84,8 +84,8 @@ func TestDeployGuardRequest(t *testing.T) {
 		actual.startsWith(expected, t)
 	})
 
-	t.Run("request has providerName query param", func(t *testing.T) {
-		if req.URL.Query().Get("providerName") != "user_service" {
+	t.Run("request has participantName query param", func(t *testing.T) {
+		if req.URL.Query().Get("participantName") != "user_service" {
 			t.Error()
 		}
 	})
@@ -125,8 +125,8 @@ func TestDeployGuardRequestNoVersion(t *testing.T) {
 		actual.startsWith(expected, t)
 	})
 
-	t.Run("request has providerName query param", func(t *testing.T) {
-		if req.URL.Query().Get("providerName") != "user_service" {
+	t.Run("request has participantName query param", func(t *testing.T) {
+		if req.URL.Query().Get("participantName") != "user_service" {
 			t.Error()
 		}
 	})

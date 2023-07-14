@@ -129,7 +129,7 @@ func GetLatestSpec(brokerURL, name string) ([]byte, error) {
 }
 
 func CheckDeployGuard(brokerURL, name, version, environment string) (bool, error) {
-	deployGuardURL := brokerURL + "/api/deploy?providerName=" + name + "&participantVersion=" + version + "&environmentName=" + environment
+	deployGuardURL := brokerURL + "/api/deploy?participantName=" + name + "&participantVersion=" + version + "&environmentName=" + environment
 
 	resp, err := http.Get(deployGuardURL)
 	if err != nil {
