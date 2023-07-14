@@ -87,7 +87,7 @@ flags:
 
 -b -—branch         git branch name (optional, only for --type 'consumer', defaults to git branch of HEAD if no value is provided)
 
--u --broker-url     the scheme, domain, and port where the Signet broker is being hosted (ex. http://localhost:3000)
+-u --broker-url     the scheme, domain, and port where the Signet broker is being hosted
 
 -i --ignore-config  ingore .signetrc.yaml file if it exists (optional)
 ```
@@ -139,7 +139,7 @@ flags:
 
 -s --provider-url   the URL where the provider service is running
 
--u --broker-url     the scheme, domain, and port where the Signet broker is being hosted (ex. http://localhost:3000)
+-u --broker-url     the scheme, domain, and port where the Signet broker is being hosted
 
 -i --ignore-config  ingore .signetrc.yaml file if it exists (optional)
 ```
@@ -156,6 +156,39 @@ test:
 #### Test a provider service against an API spec (with explicit flags)
 ```bash
 signet test --broker-url=http://localhost:3000 --provider-url=http://localhost:3002 --name=example-provider --version=version1 --branch
+```
+
+## `signet update-deployment`
+
+- The `update-deployment` command informs the Signet broker of which service versions are currently deployed in an environment. If broker does not already know about the `--environment`, it will create it.
+
+```bash
+flags:
+
+-n --name           the name of the service
+
+-v --version        the version of the service (defaults to git SHA of HEAD if no value is provided)
+
+-e --environment    the name of the environment that the service is deployed to (ex. production)
+
+-d --delete         the presence of this flag indicates that the service is no longer deployed to the environment (optional)
+
+-u --broker-url     the scheme, domain, and port where the Signet Broker is being hosted
+
+-i --ignore-config  ingore .signetrc.yaml file if it exists (optional)
+```
+- `.signetrc.yaml` supports these flags for `update-deployment`:
+```yaml
+broker-url: http://localhost:3000
+
+update-deployment:
+  name: user_service
+  environment: production
+```
+
+#### Notify the Signet broker of a deployment
+```bash
+signet update-deployment --broker-url=http://localhost:3000 --name=example-provider --version=version1 --environment=production
 ```
 
 ## `signet deploy-guard`
@@ -176,7 +209,7 @@ flags:
 
 -e --environment		the name of the environment that the service is deployed to (ex. production)
 
--u --broker-url     the scheme, domain, and port where the Signet Broker is being hosted (ex. http://localhost:3000)
+-u --broker-url     the scheme, domain, and port where the Signet Broker is being hosted
 
 -i --ignore-config  ingore .signetrc.yaml file if it exists (optional)
 ```
@@ -190,36 +223,4 @@ deploy-guard:
 #### Check if it is safe to deploy a new version of a service
 ```bash
 signet deploy-guard --broker-url=http://localhost:3000 --name=example-provider --version=version1 --environment=production
-```
-
-## `signet update-deployment`
-
-- The `update-deployment` command informs the Signet broker of which service versions are currently deployed in an environment. If broker does not already know about the `--environment`, it will create it.
-
-```bash
-flags:
-
--n --name           the name of the service
-
--v --version        the version of the service (defaults to git SHA of HEAD if no value is provided)
-
--e --environment    the name of the environment that the service is deployed to (ex. production)
-
--d --delete         the presence of this flag indicates that the service is no longer deployed to the environment (optional)
-
--u --broker-url     the scheme, domain, and port where the Signet Broker is being hosted (ex. http://localhost:3000)
-
--i --ignore-config  ingore .signetrc.yaml file if it exists (optional)
-```
-- `.signetrc.yaml` supports these flags for `update-deployment`:
-```yaml
-broker-url: http://localhost:3000
-
-update-deployment:
-  name: user_service
-```
-
-#### Notify the Signet broker of a deployment
-```bash
-signet update-deployment --broker-url=http://localhost:3000 --name=example-provider --version=version1 --environment=production
 ```

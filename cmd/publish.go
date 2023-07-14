@@ -21,19 +21,19 @@ var publishCmd = &cobra.Command{
 
 	flags:
 
-	-p --path           the relative path to the contract or spec
-	
+	-p --path           the relative path to the contract or API spec
+
 	-t -—type           the type of service contract (either 'consumer' or 'provider')
-	
+
 	-n -—name           canonical name of the provider service (only for —-type 'provider')
-	
-	-v -—version        service version (only for --type 'consumer', if flag not passed or passed without value, defaults to the git SHA of HEAD)
-	
-	-b -—branch         git branch name (optional, only for --type 'consumer', defaults to git branch of HEAD)
-	
-	-u --broker-url     the scheme, domain, and port where the Signet Broker is being hosted (ex. http://localhost:3000)
-	
-	-i --ignore-config  ingore .signetrc.yaml file if it exists
+
+	-v -—version        service version (only for --type 'consumer', defaults to the git SHA of HEAD if no value is provided)
+
+	-b -—branch         git branch name (optional, only for --type 'consumer', defaults to git branch of HEAD if no value is provided)
+
+	-u --broker-url     the scheme, domain, and port where the Signet broker is being hosted
+
+	-i --ignore-config  ingore .signetrc.yaml file if it exists (optional)
 `,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		path = viper.GetString("publish.path")

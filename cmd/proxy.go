@@ -31,12 +31,12 @@ var proxyCmd = &cobra.Command{
 	-t --target         the URL of the running provider stub or mock
 
 	-p --path           the relative path and filename that the consumer contract will be written to
-	
+
 	-n -—name           the canonical name of the consumer service
 
 	-m --provider-name  the canonical name of the provider service that the mock or stub represents
-	
-	-i --ignore-config  ingore .signetrc.yaml file if it exists
+
+	-i --ignore-config  ingore .signetrc.yaml file if it exists (optional)
 `,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		path = viper.GetString("proxy.path")

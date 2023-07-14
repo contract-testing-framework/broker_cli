@@ -29,17 +29,17 @@ var testCmd = &cobra.Command{
 	
 	flags:
 
-	-n --name 					the name of the provider service
-
-	-v --version        the version of the provider service (defaults to git SHA of HEAD)
-
-	-b --branch         Version control branch (optional)
-
-	-s --provider-url   the URL where the provider service is running
-
-	-u --broker-url     the scheme, domain, and port where the Signet Broker is being hosted (ex. http://localhost:3000)
+	-n --name           the name of the provider service
 	
-	-i --ignore-config  ingore .signetrc.yaml file if it exists
+	-v --version        the version of the provider service (defaults to git SHA of HEAD if no value is provided)
+	
+	-b --branch         git branch (optional, defaults to git branch of HEAD if '--branch' is passed with no value, or if '--version' defaulted to git SHA)
+	
+	-s --provider-url   the URL where the provider service is running
+	
+	-u --broker-url     the scheme, domain, and port where the Signet broker is being hosted
+	
+	-i --ignore-config  ingore .signetrc.yaml file if it exists (optional)
 	`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		name = viper.GetString("test.name")
