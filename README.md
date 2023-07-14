@@ -158,6 +158,32 @@ test:
 signet test --broker-url=http://localhost:3000 --provider-url=http://localhost:3002 --name=example-provider --version=version1 --branch
 ```
 
+## `signet register-env`
+
+- The `register-env` command informs the Signet broker about a new deployment environment. 
+
+```bash
+flags:
+
+-e --environment    the name of the deployment environment being registered (ex. production)
+
+-u --broker-url     the scheme, domain, and port where the Signet Broker is being hosted
+
+-i --ignore-config  ingore .signetrc.yaml file if it exists (optional)
+```
+- `.signetrc.yaml` supports these flags for `update-deployment`:
+```yaml
+broker-url: http://localhost:3000
+
+register-env:
+  environment: production
+```
+
+#### Register a deployment environment (with explicit flags)
+```bash
+signet register-env --broker-url=http://localhost:3000 --environment=production
+```
+
 ## `signet update-deployment`
 
 - The `update-deployment` command informs the Signet broker of which service versions are currently deployed in an environment. If broker does not already know about the `--environment`, it will create it.
@@ -186,7 +212,7 @@ update-deployment:
   environment: production
 ```
 
-#### Notify the Signet broker of a deployment
+#### Notify the Signet broker of a deployment (with explicit flags)
 ```bash
 signet update-deployment --broker-url=http://localhost:3000 --name=example-provider --version=version1 --environment=production
 ```
@@ -220,7 +246,7 @@ broker-url: http://localhost:3000
 deploy-guard:
   name: user_service
 ```
-#### Check if it is safe to deploy a new version of a service
+#### Check if it is safe to deploy a new version of a service (with explicit flags)
 ```bash
 signet deploy-guard --broker-url=http://localhost:3000 --name=example-provider --version=version1 --environment=production
 ```

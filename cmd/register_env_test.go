@@ -22,7 +22,7 @@ func callRegisterEnv(argsAndFlags []string) actualOut {
 
 func TestRegisterEnvNoBrokerURL(t *testing.T) {
 	flags := []string{
-		"--name=production",
+		"--environment=production",
 	}
 	actual := callRegisterEnv(flags)
 	expected := "Error: No --broker-url was provided."
@@ -36,7 +36,7 @@ func TestRegisterEnvNoName(t *testing.T) {
 		"--broker-url=http://localhost:3000",
 	}
 	actual := callRegisterEnv(flags)
-	expected := "Error: No --name was provided."
+	expected := "Error: No --environment was provided."
 
 	actual.startsWith(expected, t)
 	teardown()
@@ -48,7 +48,7 @@ func TestRegisterEnvRequest(t *testing.T) {
 
 	flags := []string{
 		"--broker-url", server.URL,
-		"--name=production",
+		"--environment=production",
 	}
 	actual := callRegisterEnv(flags)
 
