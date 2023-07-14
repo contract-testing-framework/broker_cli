@@ -8,15 +8,12 @@ import (
 	"time"
 
 	"github.com/spf13/cobra"
-
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
-	// "github.com/aws/aws-sdk-go-v2/service/opsworks"
+	"github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2"
 )
-
-const stackName = "signetbroker"
 
 var deployCmd = &cobra.Command{
 	Use:   "deploy",
@@ -40,7 +37,6 @@ var deployCmd = &cobra.Command{
     }
 		
 		cfClient := cloudformation.NewFromConfig(cfg)
-		// csOutput, err := cfClient.CreateStack(context.TODO(), csInput)
 		_, err = cfClient.CreateStack(context.TODO(), csInput)
 		if err != nil {
 			return errors.New("unable to create CloudFormation stack: " + err.Error())
@@ -54,9 +50,7 @@ var deployCmd = &cobra.Command{
 
 		fmt.Println(colorGreen + "Deployed Successfully" + colorReset)
 
-		// aws opsworks api cannot find the stack by stackId...
-		// uncomment line 43 above to debug
-		// printURLofELB(csOutput, cfg)
+		printURLofELB(cfClient, cfg)
 
 		return nil
 	},
@@ -93,21 +87,37 @@ func waitForDeploymentDone(cfClient *cloudformation.Client) error {
 	return nil
 }
 
-// func printURLofELB(csOutput *cloudformation.CreateStackOutput, cfg aws.Config) {
-// 	stackId := csOutput.StackId
-// 	delbInput := &opsworks.DescribeElasticLoadBalancersInput{StackId: stackId}
+func printURLofELB(cfClient *cloudformation.Client, cfg aws.Config) error {
+	name := stackName
+	dsrInput := &cloudformation.DescribeStackResourcesInput{StackName: &name}
 
-// 	opsClient := opsworks.NewFromConfig(cfg)
-// 	delbOutput, err := opsClient.DescribeElasticLoadBalancers(context.TODO(), delbInput)
+	dsrOutput, err := cfClient.DescribeStackResources(context.TODO(), dsrInput)
+	if err != nil {
+		fmt.Println("Cannot display the URL of the ELB in front of the Signet broker cluster - check AWS console for the ELB's URL")
+		return nil
+	}
 
-// 	if err != nil || len(delbOutput.ElasticLoadBalancers) == 0 {
-// 		fmt.Println("Cannot display the URL of the ELB in front of the Signet broker cluster - check AWS console for the ELB's URL")
-// 	} else {
-// 		elb := delbOutput.ElasticLoadBalancers[0]
-// 		fmt.Println("Signet broker is exposed through an Elastic Load Balancer at " + colorBlue + "http://" + *elb.DnsName + colorReset)
-// 		fmt.Println("Add a TLS certificate to the ELB to enable HTTPS")
-// 	}
-// }
+	var elbArn string
+	for _, resource := range dsrOutput.StackResources {
+		if *resource.LogicalResourceId == "LoadBalancer" {
+			elbArn = *resource.PhysicalResourceId
+		}
+	}
+
+	elbClient := elasticloadbalancingv2.NewFromConfig(cfg)
+	dlbInput := elasticloadbalancingv2.DescribeLoadBalancersInput{LoadBalancerArns: []string{elbArn}}
+	dlbOutput, err := elbClient.DescribeLoadBalancers(context.TODO(), &dlbInput)
+	if err != nil {
+		fmt.Println("Cannot display the URL of the ELB in front of the Signet broker cluster - check AWS console for the ELB's URL")
+		return nil
+	}
+
+	dnsName := *dlbOutput.LoadBalancers[0].DNSName
+	fmt.Println("Signet broker is exposed through an Elastic Load Balancer at " + colorBlue + "http://" + dnsName + colorReset)
+	fmt.Println("\nAdd a TLS certificate to the ELB to enable HTTPS")
+
+	return nil
+}
 	
 func init() {
 	RootCmd.AddCommand(deployCmd)

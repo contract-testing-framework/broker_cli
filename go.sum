@@ -16,6 +16,8 @@ github.com/aws/aws-sdk-go-v2/internal/ini v1.3.36 h1:8r5m1BoAWkn0TDC34lUculryf7n
 github.com/aws/aws-sdk-go-v2/internal/ini v1.3.36/go.mod h1:Rmw2M1hMVTwiUhjwMoIBFWFJMhvJbct06sSidxInkhY=
 github.com/aws/aws-sdk-go-v2/service/cloudformation v1.30.1 h1:MHKSdt+ECxOWD98MYj/Ocy4GS8GgAjgEDSPaiTaXP6U=
 github.com/aws/aws-sdk-go-v2/service/cloudformation v1.30.1/go.mod h1:laKFhtn8EH6gcPl7KEQ4kcuSYcQF1tqUm82ENxMwlMk=
+github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2 v1.19.14 h1:ekfFZUYzAqzBYhh1bwIen4SNLIn4KiMNDWyRmfbp62I=
+github.com/aws/aws-sdk-go-v2/service/elasticloadbalancingv2 v1.19.14/go.mod h1:0eT2aeVd4MnWmyT935I2MTwP5xT7cFVteV02BgJ/F+E=
 github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.9.29 h1:IiDolu/eLmuB18DRZibj77n1hHQT7z12jnGO7Ze3pLc=
 github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.9.29/go.mod h1:fDbkK4o7fpPXWn8YAPmTieAMuB9mk/VgvW64uaUqxd4=
 github.com/aws/aws-sdk-go-v2/service/opsworks v1.14.13 h1:mZP0LDpJrC+wjgVfWPgG8e8UfwwfbfXm3DTx+bg63I0=

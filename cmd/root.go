@@ -12,6 +12,7 @@ const colorGreen = "\033[32m"
 const colorRed = "\033[31m"
 const colorBlue = "\033[34m"
 const colorReset = "\033[0m"
+const stackName = "signetbroker"
 
 var IgnoreConfig bool
 var brokerURL string

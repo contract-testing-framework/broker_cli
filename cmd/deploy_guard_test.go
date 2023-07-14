@@ -147,10 +147,13 @@ func TestDeployGuardRequestNoVersion(t *testing.T) {
 	teardown()
 }
 
-// to write the following test, see the following articles:
-// https://blog.antoine-augusti.fr/2015/12/testing-an-os-exit-scenario-in-golang/
-// https://sr-taj.medium.com/how-to-test-methods-that-kill-your-program-in-golang-e3b879185b8a
+/*
+deploy-guard should exit with a exit code of 1 when it is unsafe to deploy
 
+in order to test this, the test executes itself in another process wherein it actually
+executes 'signet deploy-guard'. This should cause the test to fail becuase of the exit
+code. The test in this process asserts that the other process fails correctly.
+*/
 func TestDeployGuardRequestWhenUnsafe(t *testing.T) {
 	respBody := client.DeployGuardResponse{
 		Status: false,
