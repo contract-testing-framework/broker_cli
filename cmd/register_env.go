@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
+
 	client "github.com/contract-testing-framework/broker_cli/client"
 	utils "github.com/contract-testing-framework/broker_cli/utils"
 )
@@ -16,22 +18,24 @@ var registerEnvCmd = &cobra.Command{
 	
 	flags:
 
-	-n --name           the name of the deployment environment being registered (ex. production)
+	-e --environment    the name of the deployment environment being registered (ex. production)
 
-	-i --ignore-config  ingore .signetrc.yaml file if it exists
-	
-	-u --broker-url     the scheme, domain, and port where the Signet Broker is being hosted (ex. http://localhost:3000)
+	-u --broker-url     the scheme, domain, and port where the Signet Broker is being hosted
+
+	-i --ignore-config  ingore .signetrc.yaml file if it exists (optional)
 	`,
 	RunE: func(cmd *cobra.Command, args []string) error {
+		environment = viper.GetString("register-env.environment")
+
 		if len(brokerURL) == 0 {
 			return errors.New("No --broker-url was provided. This is a required flag.")
 		}
 
-		if len(name) == 0 {
-			return errors.New("No --name was provided. A value for this flag is required.")
+		if len(environment) == 0 {
+			return errors.New("No --environment was provided. A value for this flag is required.")
 		}
 
-		requestBody := utils.EnvBody{EnvironmentName: name}
+		requestBody := utils.EnvBody{EnvironmentName: environment}
 
 		jsonData, err := json.Marshal(requestBody)
 		if err != nil {
@@ -50,5 +54,7 @@ var registerEnvCmd = &cobra.Command{
 func init() {
 	RootCmd.AddCommand(registerEnvCmd)
 
-	registerEnvCmd.Flags().StringVarP(&name, "name", "n", "", "The name of the deployment environment being registered")
+	registerEnvCmd.Flags().StringVarP(&environment, "environment", "e", "", "The name of the deployment environment being registered")
+
+	viper.BindPFlag("register-env.environment", registerEnvCmd.Flags().Lookup("environment"))
 }

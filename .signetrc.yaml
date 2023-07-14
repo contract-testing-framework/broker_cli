@@ -21,3 +21,6 @@ proxy:
   target: http://localhost:3002
   name: service_1
   provider-name: user_service
+
+register-env:
+  environment: production
