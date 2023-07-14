@@ -1,10 +1,10 @@
 package cmd
 
 import (
-	"testing"
 	"bytes"
+	"testing"
 
-	utils "github.com/contract-testing-framework/broker_cli/utils"
+	utils "github.com/signet-framework/signet-cli/utils"
 )
 
 /* ------------- helpers ------------- */
@@ -28,7 +28,7 @@ func TestUpdateDeploymentNoBrokerURL(t *testing.T) {
 	}
 	actual := callUpdateDeployment(flags)
 	expected := "Error: No --broker-url was provided."
-	
+
 	actual.startsWith(expected, t)
 	teardown()
 }

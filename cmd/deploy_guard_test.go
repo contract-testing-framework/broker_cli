@@ -1,13 +1,13 @@
 package cmd
 
 import (
-	"testing"
 	"bytes"
+	"io/ioutil"
 	"os"
 	"os/exec"
-	"io/ioutil"
+	"testing"
 
-	client "github.com/contract-testing-framework/broker_cli/client"
+	client "github.com/signet-framework/signet-cli/client"
 )
 
 /* ------------- helpers ------------- */
@@ -31,7 +31,7 @@ func TestDeployGuardNoBrokerURL(t *testing.T) {
 	}
 	actual := callDeployGuard(flags)
 	expected := "Error: No --broker-url was provided."
-	
+
 	actual.startsWith(expected, t)
 	teardown()
 }
@@ -157,7 +157,7 @@ func TestDeployGuardRequestWhenUnsafe(t *testing.T) {
 		Status: false,
 		Errors: []client.DeployGuardError{
 			client.DeployGuardError{
-				Title: "incompatible consumer",
+				Title:   "incompatible consumer",
 				Details: "service_1 is incompatible with this service as its provider",
 			},
 		},
@@ -191,7 +191,7 @@ func TestDeployGuardRequestWhenUnsafe(t *testing.T) {
 		expected := colorRed + "Unsafe to Deploy"
 		actual.startsWith(expected, t)
 	})
-	
+
 	err := cmd.Wait()
 	t.Run("exits with exit code 1", func(t *testing.T) {
 		e, ok := err.(*exec.ExitError)

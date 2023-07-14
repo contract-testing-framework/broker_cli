@@ -1,17 +1,17 @@
 package cmd
 
 import (
+	"errors"
+	"fmt"
+	"log"
 	"os"
 	"os/exec"
-	"errors"
-	"log"
-	"fmt"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-	client "github.com/contract-testing-framework/broker_cli/client"
-	utils "github.com/contract-testing-framework/broker_cli/utils"
+	client "github.com/signet-framework/signet-cli/client"
+	utils "github.com/signet-framework/signet-cli/utils"
 )
 
 const rwPermissions = 0666

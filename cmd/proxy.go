@@ -1,18 +1,18 @@
 package cmd
 
 import (
+	"encoding/json"
 	"errors"
+	"log"
 	"os"
 	"os/exec"
 	"os/signal"
 	"strconv"
-	"encoding/json"
-	"log"
-	
+
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-	utils "github.com/contract-testing-framework/broker_cli/utils"
+	utils "github.com/signet-framework/signet-cli/utils"
 )
 
 var port string
@@ -75,7 +75,7 @@ var proxyCmd = &cobra.Command{
 
 		c := make(chan os.Signal, 1)
 		signal.Notify(c, os.Interrupt)
-		go func(){
+		go func() {
 			for range c {
 				cmd.Println("\n\ngenerating consumer contract...")
 
@@ -86,7 +86,7 @@ var proxyCmd = &cobra.Command{
 
 				if ok {
 					cmd.Println("\n" + colorGreen + "Success" + colorReset + " - Signet proxy wrote the consumer contract to " + path)
-					} else {
+				} else {
 					cmd.Println("\nInfo - No contract was generated because Signet proxy did not record any interactions")
 				}
 			}
@@ -130,17 +130,17 @@ func setupMbConfig(port, target, configPath string) error {
 	if err != nil {
 		return err
 	}
-	
+
 	proxyConfig := utils.ProxyConfig{
-		Port: portInt,
-		Name: "signet-proxy",
+		Port:     portInt,
+		Name:     "signet-proxy",
 		Protocol: "http",
 		Stubs: []utils.MbStub{
 			utils.MbStub{
 				Responses: []utils.MbResponse{
 					utils.MbResponse{
 						Proxy: utils.MbProxy{
-							To: target,
+							To:   target,
 							Mode: "proxyOnce",
 						},
 					},

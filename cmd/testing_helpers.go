@@ -2,14 +2,14 @@ package cmd
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
-	"testing"
-	"fmt"
 	"os"
+	"testing"
 
-	utils "github.com/contract-testing-framework/broker_cli/utils"
-	client "github.com/contract-testing-framework/broker_cli/client"
+	client "github.com/signet-framework/signet-cli/client"
+	utils "github.com/signet-framework/signet-cli/utils"
 )
 
 func teardown() {

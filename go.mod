@@ -1,4 +1,4 @@
-module github.com/contract-testing-framework/broker_cli
+module github.com/signet-framework/signet-cli
 
 go 1.20
 

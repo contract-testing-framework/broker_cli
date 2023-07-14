@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/contract-testing-framework/broker_cli/cmd"
+	"github.com/signet-framework/signet-cli/cmd"
 )
 
 func main() {
