@@ -272,7 +272,7 @@ func GetMatchPaths(stubsPath string) ([]string, error) {
 
 func WritePact(pact map[string]interface{}, pactPath string) error {
 	CreatePactDir(pactPath)
-	//fmt.Print(pact)
+	
 	file, _ := json.MarshalIndent(pact, "", " ")
 
 	err := os.WriteFile(pactPath, file, 0644)

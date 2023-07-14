@@ -11,7 +11,6 @@ import (
 
 /* ------------- helpers ------------- */
 
-// setup and execute publish command
 func callSignetTest(argsAndFlags []string) actualOut {
 	actual := new(bytes.Buffer)
 	RootCmd.SetOut(actual)

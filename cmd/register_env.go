@@ -31,7 +31,7 @@ var registerEnvCmd = &cobra.Command{
 			return errors.New("No --name was provided. A value for this flag is required.")
 		}
 
-		requestBody := utils.EnvBody{name}
+		requestBody := utils.EnvBody{EnvironmentName: name}
 
 		jsonData, err := json.Marshal(requestBody)
 		if err != nil {
