@@ -32,7 +32,7 @@ var undeployCmd = &cobra.Command{
 			return errors.New("unable to delete CloudFormation stack: " + err.Error())
 		}
 
-		fmt.Println(colorGreen + "Undeploying" + colorReset + " - tearing down the Signet broker deployment on AWS, this will take a few minutes...")
+		fmt.Println(colorGreen + "Undeploying" + colorReset + " - tearing down the Signet broker ECS Cluster, this will take a few minutes...")
 
 		if err := waitForUndeploymentDone(cfClient); err != nil {
 			return err

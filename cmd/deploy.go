@@ -1,145 +1,114 @@
 package cmd
 
 import (
-	"bufio"
 	"errors"
 	"fmt"
-	"os/exec"
-	"regexp"
+	"context"
+	"io/ioutil"
+	"time"
 
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
+
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
+	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
+	// "github.com/aws/aws-sdk-go-v2/service/opsworks"
 )
 
-var ecsContext string
-var silent bool
-var destroy bool
+const stackName = "signetbroker"
 
 var deployCmd = &cobra.Command{
 	Use:   "deploy",
-	Short: "Deploy the Signet broker to you AWS account on ECS with Fargate",
-	Long:  `Deploy the Signet broker to you AWS account on ECS with Fargate
-	
-	flags:
-
-	-c --ecs-context           the name of the local docker ecs context with AWS credentials
-	
-	-s -—silent                (bool) silence docker's status updates as it provisions AWS infrastructure
-
-	-d --destroy               (bool) causes the Signet broker to be torn down from AWS instead of deployed
-	`,
+	Short: "Deploy the Signet broker to a new ECS Fargate cluster",
+	Long:  `Deploy the Signet broker to a new ECS Fargate cluster`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		ecsContext = viper.GetString("deploy.ecs-context")
-		silent = viper.GetBool("deploy.silent")
-
-		if err := checkEcsContextExists(ecsContext); err != nil {
-			return err
-		}
-
-		currentDockerContext, err := cacheCurrentDockerContext()
+		template, err := getCloudFormationTemplate()
 		if err != nil {
 			return err
 		}
-	
-		if exec.Command("docker", "context", "use", ecsContext).Run(); err != nil {
+		
+		csInput := &cloudformation.CreateStackInput{
+			StackName: aws.String(stackName),
+			TemplateBody: aws.String(template),
+			Capabilities: []types.Capability{"CAPABILITY_IAM"},
+		}
+
+		cfg, err := config.LoadDefaultConfig(context.TODO())
+    if err != nil {
+			return errors.New("unable to load SDK config - have you configured your aws cli with `aws configure`? " + err.Error())
+    }
+		
+		cfClient := cloudformation.NewFromConfig(cfg)
+		// csOutput, err := cfClient.CreateStack(context.TODO(), csInput)
+		_, err = cfClient.CreateStack(context.TODO(), csInput)
+		if err != nil {
+			return errors.New("unable to create CloudFormation stack: " + err.Error())
+		}
+
+		fmt.Println(colorGreen + "Deploying" + colorReset + " - deploying the Signet broker to a new ECS Fargate cluster, this will take a few minutes...")
+
+		if err := waitForDeploymentDone(cfClient); err != nil {
 			return err
 		}
 
-		fmt.Println("Info: deploying Signet broker to your AWS cloud using ECS with Fargate, this may take a few minutes...")
-		if err = deploySignet(silent, destroy); err != nil {
-			return err
-		}
+		fmt.Println(colorGreen + "Deployed Successfully" + colorReset)
 
-		fmt.Println(colorGreen + "Signet deployed" + colorReset + " - the Signet broker has been deployed to your AWS cloud")
-
-		// it is okay if this command is not successful
-		_ = exec.Command("docker", "context", "use", currentDockerContext).Run()
-
-		// if err = exec.Command("docker", "context", "use", currentDockerContext).Run(); err != nil {
-		// 	fmt.Println("Errored on line 56")
-		// 	return err
-		// }
+		// aws opsworks api cannot find the stack by stackId...
+		// uncomment line 43 above to debug
+		// printURLofELB(csOutput, cfg)
 
 		return nil
 	},
 }
 
-func checkEcsContextExists(context string) error {
-	checkContextCmd := exec.Command("docker", "context", "list")
-	stdoutStderr, err := checkContextCmd.CombinedOutput()
-	checkContextOutput := string(stdoutStderr)
-	
-	if err != nil && len(checkContextOutput) == 0 {
-		return errors.New("failed to check for existing docker context. Is docker running? - " + err.Error())
-	}
-	
-	found, err := regexp.MatchString(context, checkContextOutput)
-	if err != nil {
-		return err
-	}
-	
-	if !found {
-		return errors.New("docker context not found for --ecs-context. Please run 'docker context create ecs <context-name>' and follow the prompts to configure your AWS credentials")
-	}
-	
-	return nil
-}
-
-func cacheCurrentDockerContext() (string, error) {
-	getContextCmd := exec.Command("docker", "context", "show")
-	stdoutStderr, err := getContextCmd.CombinedOutput()
-	if err != nil {
-		return "", err
-	}
-
-	if len(stdoutStderr) == 0 {
-		return "", errors.New("could not get current docker context")
-	}
-
-	return string(stdoutStderr[:len(stdoutStderr) - 1]), nil
-}
-
-func deploySignet(silent, destory bool) error {
+func getCloudFormationTemplate() (string, error) {
 	signetRoot, err := getNpmPkgRoot()
 	if err != nil {
-		return err
+		return "", errors.New("unable to find signet-cli global npm package: " + err.Error())
 	}
-
-	upDown := "up"
-	if destory {
-		upDown = "down"
+	templatePath := signetRoot + "/cftemplate.yaml"
+	
+	templateFile, err := ioutil.ReadFile(templatePath)
+	if err != nil {
+		return "", errors.New("unable to load CloudFormation template: " + err.Error())
 	}
 	
-	signetUpCmd := exec.Command("docker", "compose", "--project-name=signetbroker", "--file=" + signetRoot + "/docker-compose.yml", upDown)
-	stderr, err := signetUpCmd.StderrPipe()
+	return string(templateFile), nil
+}
+
+func waitForDeploymentDone(cfClient *cloudformation.Client) error {
+	waiter := cloudformation.NewStackCreateCompleteWaiter(cfClient)
+	waitDuration, err := time.ParseDuration("15m")
 	if err != nil {
 		return err
 	}
 
-	if !silent {
-		go func() {
-			scanner := bufio.NewScanner(stderr)
-			for scanner.Scan() {
-				fmt.Println(scanner.Text())
-			}
-		}()
+	name := stackName
+	dsInput := &cloudformation.DescribeStacksInput{StackName: &name}
+	if err := waiter.Wait(context.TODO(), dsInput, waitDuration); err != nil { // changed this from WaitForOutput before committing - untested
+		return errors.New("error while waiting for CloudFormation stack to be created - it is likely that Signet CLI simply timed out. Check your AWS console for the status of the deployment: " + err.Error())
 	}
-	
-	err = signetUpCmd.Run()
-	if err != nil {
-		return err
-	}
-	
+
 	return nil
 }
+
+// func printURLofELB(csOutput *cloudformation.CreateStackOutput, cfg aws.Config) {
+// 	stackId := csOutput.StackId
+// 	delbInput := &opsworks.DescribeElasticLoadBalancersInput{StackId: stackId}
+
+// 	opsClient := opsworks.NewFromConfig(cfg)
+// 	delbOutput, err := opsClient.DescribeElasticLoadBalancers(context.TODO(), delbInput)
+
+// 	if err != nil || len(delbOutput.ElasticLoadBalancers) == 0 {
+// 		fmt.Println("Cannot display the URL of the ELB in front of the Signet broker cluster - check AWS console for the ELB's URL")
+// 	} else {
+// 		elb := delbOutput.ElasticLoadBalancers[0]
+// 		fmt.Println("Signet broker is exposed through an Elastic Load Balancer at " + colorBlue + "http://" + *elb.DnsName + colorReset)
+// 		fmt.Println("Add a TLS certificate to the ELB to enable HTTPS")
+// 	}
+// }
 	
 func init() {
 	RootCmd.AddCommand(deployCmd)
-
-	deployCmd.Flags().StringVarP(&ecsContext, "ecs-context", "c", "", "the name of the local docker ecs context with AWS credentials")
-	deployCmd.Flags().BoolVarP(&silent, "silent", "s", false, "silence docker's status updates as it provisions AWS infrastructure")
-	deployCmd.Flags().BoolVarP(&destroy, "destroy", "d", false, "causes the Signet broker to be torn down from AWS instead of deployed")
-
-	viper.BindPFlag("deploy.ecs-context", deployCmd.Flags().Lookup("ecs-context"))
-	viper.BindPFlag("deploy.silent", deployCmd.Flags().Lookup("silent"))
 }
