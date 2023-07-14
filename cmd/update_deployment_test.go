@@ -9,7 +9,6 @@ import (
 
 /* ------------- helpers ------------- */
 
-// setup and execute update-deployment command
 func callUpdateDeployment(argsAndFlags []string) actualOut {
 	actual := new(bytes.Buffer)
 	RootCmd.SetOut(actual)

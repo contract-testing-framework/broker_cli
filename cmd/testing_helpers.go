@@ -122,11 +122,6 @@ func mockServerForDeployGuardReq200OK(t *testing.T, respBody client.DeployGuardR
 		w.WriteHeader(http.StatusOK)
 		w.Header().Set("Content-Type", "application/json")
 
-		// specBytes, err := os.ReadFile("../data_test/api-spec.json")
-		// if err != nil {
-		// 	t.Error("Failed to load spec for mock response")
-		// }
-
 		jsonData, err := json.Marshal(respBody)
 		if err != nil {
 			t.Error("Failed to encode mock response body")

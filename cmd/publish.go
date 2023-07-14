@@ -36,7 +36,6 @@ var publishCmd = &cobra.Command{
 	-i --ignore-config  ingore .signetrc.yaml file if it exists
 `,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		// get flag values from config file if not passed in on command line
 		path = viper.GetString("publish.path")
 		serviceType = viper.GetString("publish.type")
 		name = viper.GetString("publish.name")
@@ -67,7 +66,6 @@ var publishCmd = &cobra.Command{
 			}
 			fmt.Println(colorGreen + "Published" + colorReset + " - provider API spec published to Signet broker")
 		}
-
 
 		return nil
 	},

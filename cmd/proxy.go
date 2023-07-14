@@ -76,21 +76,10 @@ var proxyCmd = &cobra.Command{
 		c := make(chan os.Signal, 1)
 		signal.Notify(c, os.Interrupt)
 		go func(){
-			for _ = range c {
+			for range c {
 				cmd.Println("\n\ngenerating consumer contract...")
 
 				err, ok := utils.CreatePact(stubsDir, path, name, providerName)
-
-				// in-scope variables for arguments:
-					// stubsDir     -> uncomment line 60 above
-					// path         -> write the pact to this file name (relative)
-					// name         -> the name of the consumer
-					// providerName -> the name of the provider
-
-				// return (error, false) if an error occured in Eric's functions
-				// return (nil, false)   if everything worked, but there are no matches to transform
-				// return (nil, true)    if everything worked, and a pact was successfully written
-
 				if err != nil {
 					log.Fatal(err)
 				}
@@ -165,7 +154,6 @@ func setupMbConfig(port, target, configPath string) error {
 		return err
 	}
 
-	// this function comes from verify_provider.go
 	err = osWriteFile(configPath, jsonBytes, rwPermissions)
 	if err != nil {
 		return errors.New("failed to write mountebank config file: " + err.Error())

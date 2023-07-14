@@ -9,7 +9,6 @@ import (
 
 /* ------------- helpers ------------- */
 
-// setup and execute register-env command
 func callRegisterEnv(argsAndFlags []string) actualOut {
 	actual := new(bytes.Buffer)
 	RootCmd.SetOut(actual)

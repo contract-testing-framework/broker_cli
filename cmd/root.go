@@ -22,7 +22,6 @@ var version string
 var branch string
 var environment string
 
-// rootCmd represents the base command when called without any subcommands
 var RootCmd = &cobra.Command{
 	Use:   "signet",
 	Short: "The command line interface for the Signet contract testing framework",

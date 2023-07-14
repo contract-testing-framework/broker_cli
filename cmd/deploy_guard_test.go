@@ -7,13 +7,11 @@ import (
 	"os/exec"
 	"io/ioutil"
 
-	// utils "github.com/contract-testing-framework/broker_cli/utils"
 	client "github.com/contract-testing-framework/broker_cli/client"
 )
 
 /* ------------- helpers ------------- */
 
-// setup and execute deploy-guard command
 func callDeployGuard(argsAndFlags []string) actualOut {
 	actual := new(bytes.Buffer)
 	RootCmd.SetOut(actual)
