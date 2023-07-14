@@ -35,6 +35,7 @@ var updateDeploymentCmd = &cobra.Command{
 	`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		name = viper.GetString("update-deployment.name")
+		environment = viper.GetString("update-deployment.environment")
 
 		if len(brokerURL) == 0 {
 			return errors.New("No --broker-url was provided. This is a required flag.")
@@ -93,4 +94,5 @@ func init() {
 	updateDeploymentCmd.Flags().Lookup("version").NoOptDefVal = "auto"
 
 	viper.BindPFlag("update-deployment.name", updateDeploymentCmd.Flags().Lookup("name"))
+	viper.BindPFlag("update-deployment.environment", updateDeploymentCmd.Flags().Lookup("environment"))
 }

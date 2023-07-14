@@ -39,7 +39,7 @@ var deployCmd = &cobra.Command{
 		cfClient := cloudformation.NewFromConfig(cfg)
 		_, err = cfClient.CreateStack(context.TODO(), csInput)
 		if err != nil {
-			return errors.New("unable to create CloudFormation stack: " + err.Error())
+			return errors.New("unable to create CloudFormation stack - have you configured your aws cli with `aws configure`?: " + err.Error())
 		}
 
 		fmt.Println(colorGreen + "Deploying" + colorReset + " - deploying the Signet broker to a new ECS Fargate cluster, this will take a few minutes...")
