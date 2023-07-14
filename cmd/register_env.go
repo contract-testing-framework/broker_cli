@@ -1,14 +1,14 @@
 package cmd
 
 import (
-	"errors"
 	"encoding/json"
+	"errors"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-	client "github.com/contract-testing-framework/broker_cli/client"
-	utils "github.com/contract-testing-framework/broker_cli/utils"
+	client "github.com/signet-framework/signet-cli/client"
+	utils "github.com/signet-framework/signet-cli/utils"
 )
 
 var registerEnvCmd = &cobra.Command{

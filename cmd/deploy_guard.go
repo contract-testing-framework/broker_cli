@@ -2,14 +2,14 @@ package cmd
 
 import (
 	"errors"
-	"os"
 	"fmt"
+	"os"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-	client "github.com/contract-testing-framework/broker_cli/client"
-	utils "github.com/contract-testing-framework/broker_cli/utils"
+	client "github.com/signet-framework/signet-cli/client"
+	utils "github.com/signet-framework/signet-cli/utils"
 )
 
 var deployGuardCmd = &cobra.Command{
@@ -35,11 +35,11 @@ var deployGuardCmd = &cobra.Command{
 		if len(brokerURL) == 0 {
 			return errors.New("No --broker-url was provided. This is a required flag.")
 		}
-	
+
 		if len(name) == 0 {
 			return errors.New("No --name was provided. This is a required flag.")
 		}
-	
+
 		if version == "" || version == "auto" {
 			var err error
 			version, err = utils.SetVersionToGitSha(version)
@@ -60,7 +60,7 @@ var deployGuardCmd = &cobra.Command{
 		if ok {
 			cmd.Println(colorGreen + "Safe To Deploy" + colorReset + " - version " + version + " of " + name + " is compatible with all other services in " + environment + " environment")
 		} else {
-			fmt.Fprintf(os.Stderr, colorRed + "Unsafe to Deploy" + colorReset + " - version " + version + " of " + name + " is incompatible with one or more services in " + environment + " environment\n")
+			fmt.Fprintf(os.Stderr, colorRed+"Unsafe to Deploy"+colorReset+" - version "+version+" of "+name+" is incompatible with one or more services in "+environment+" environment\n")
 			os.Exit(1)
 		}
 

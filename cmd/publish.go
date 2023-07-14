@@ -3,11 +3,11 @@ package cmd
 import (
 	"errors"
 	"fmt"
-	
+
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-	utils "github.com/contract-testing-framework/broker_cli/utils"
+	utils "github.com/signet-framework/signet-cli/utils"
 )
 
 var serviceType string

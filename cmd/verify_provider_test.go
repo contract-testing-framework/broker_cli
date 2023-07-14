@@ -2,11 +2,11 @@ package cmd
 
 import (
 	"bytes"
-	"testing"
 	"errors"
 	"io/fs"
+	"testing"
 
-	utils "github.com/contract-testing-framework/broker_cli/utils"
+	utils "github.com/signet-framework/signet-cli/utils"
 )
 
 /* ------------- helpers ------------- */
@@ -63,7 +63,7 @@ func TestSignetTestNoProviderURL(t *testing.T) {
 func TestSignetCanGetLatestSpec(t *testing.T) {
 	realGetNpmPkgRoot := getNpmPkgRoot
 	realosWriteFile := osWriteFile
-  defer func() { 
+	defer func() {
 		getNpmPkgRoot = realGetNpmPkgRoot
 		osWriteFile = realosWriteFile
 	}()

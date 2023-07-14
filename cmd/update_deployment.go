@@ -1,15 +1,15 @@
 package cmd
 
 import (
-	"errors"
 	"encoding/json"
+	"errors"
 	"fmt"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-	client "github.com/contract-testing-framework/broker_cli/client"
-	utils "github.com/contract-testing-framework/broker_cli/utils"
+	client "github.com/signet-framework/signet-cli/client"
+	utils "github.com/signet-framework/signet-cli/utils"
 )
 
 var delete bool
@@ -58,10 +58,10 @@ var updateDeploymentCmd = &cobra.Command{
 		}
 
 		requestBody := utils.DeploymentBody{
-			EnvironmentName: environment,
-			ParticipantName: name,
+			EnvironmentName:    environment,
+			ParticipantName:    name,
 			ParticipantVersion: version,
-			Deployed: !delete,
+			Deployed:           !delete,
 		}
 
 		jsonData, err := json.Marshal(requestBody)

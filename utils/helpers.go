@@ -10,7 +10,7 @@ import (
 	"path/filepath"
 	"regexp"
 
-	client "github.com/contract-testing-framework/broker_cli/client"
+	client "github.com/signet-framework/signet-cli/client"
 )
 
 func ValidType(serviceType string) error {
@@ -272,7 +272,7 @@ func GetMatchPaths(stubsPath string) ([]string, error) {
 
 func WritePact(pact map[string]interface{}, pactPath string) error {
 	CreatePactDir(pactPath)
-	
+
 	file, _ := json.MarshalIndent(pact, "", " ")
 
 	err := os.WriteFile(pactPath, file, 0644)

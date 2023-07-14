@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"testing"
 
-	utils "github.com/contract-testing-framework/broker_cli/utils"
+	utils "github.com/signet-framework/signet-cli/utils"
 )
 
 /* ------------- helpers ------------- */
