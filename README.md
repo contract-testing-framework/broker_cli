@@ -1,5 +1,6 @@
 
-The command line interface for the Signet contract testing framework.
+`signet-cli` is the command line interface for the Signet contract testing framework. The functionality and documentation for the cli lives here. The [signet-broker README](https://github.com/signet-framework/signet-broker) has example use-cases, and more information about the Signet broker.
+&nbsp;  
 
 # Installation
 
@@ -8,16 +9,24 @@ The command line interface for the Signet contract testing framework.
 ```bash
 npm install -g signet-cli
 ```
-
+&nbsp;  
 # `signet` commands
 Syntax:
 ```bash
 signet [command] [--flags]
 ```
+&nbsp;  
 
-Note: signet-cli looks for a `.signetrc.yaml` file in the current working directory. Most of the flags that `signet` commands require can be configured there instead of being passed into cli commands.
+Signet-cli checks for a `.signetrc.yaml` file in the current working directory. All required flags, and most optional flags can be set in the config file instead of being passed on the command line.
 
+Config file syntax:
+```yaml
+global-flag: string
 
+any-signet-command:
+  flag-for-command: string
+```
+&nbsp;  
 ## `signet deploy`
 
 - The `deploy` command automatically deploys the Signet broker to a new ECS Fargate cluster in the user's AWS virtual private cloud. It uses a CloudFormation template and the AWS golang SDK to pull the Signet broker's docker images from DockerHub and provision the ECS Fargate cluster behind an Elastic Load Balancer. 
@@ -27,17 +36,21 @@ Note: signet-cli looks for a `.signetrc.yaml` file in the current working direct
 ```bash
 signet deploy
 ```
+&nbsp;  
 ## `signet undeploy`
 - The `undeploy` command tears down all of the cloud infrastructure created by `signet deploy`
 ```bash
 signet undeploy
 ```
-
+&nbsp;  
 ## `signet proxy`
 
 - The `proxy` command is used to automatically generate a consumer contract by recording requests and responses generated during unit and service tests. `proxy` starts up a server that acts as a transparent proxy between the consumer service under test and the mock or stub of the provider service. `proxy` captures the requests and responses between the two services, and automatically generates a valid consumer contract. `proxy` uses an open source tool (mountebank) to record the requests and responses, and then transforms the recorded messages into a Pact-complient consumer contract.
 
 ```bash
+signet proxy
+
+
 flags:
 
 -o --port           the port that signet proxy should run on
@@ -54,6 +67,8 @@ flags:
 ```
 - `.signetrc.yaml` supports these flags for `signet proxy`:
 ```yaml
+broker-url: http://localhost:3000
+
 proxy:
   path: ./contracts/cons-prov.json
   port: 3004
@@ -61,13 +76,8 @@ proxy:
   name: service_1
   provider-name: user_service
 ```
-#### Using Signet Proxy (with explicit flags)
-```bash
-signet proxy --port=3004 --target=http://localhost:3002 --path=./contracts/cons-prov.json --name=service_1 --provider-name=user_service
-```
-
+&nbsp;  
 ## `signet publish`
-
 - The `publish` command pushes a local contract or API spec to the broker. This automatically triggers contract/spec comparison if the broker already has a contract or API spec for the other participant in the integration.
 
 - When publishing a consumer contract, it required to pass a `--version`. This informs the Signet broker of which versions of the consumer service the consumer contract is tested against.
@@ -75,6 +85,9 @@ signet proxy --port=3004 --target=http://localhost:3002 --path=./contracts/cons-
 - When publishing a provider API spec, `--version` and `--branch` flags are ignored. This is becuase a provider spec is not generated from unit tests (like a consumer contract), and is not guarenteed to be correctly implemented by a provider at the time the spec is published. Versions of a provider service are proven to correctly implement an API spec with the `signet test` command. A passing `signet test` will inform the Signet broker of which versions of the provider service are tested against the API spec.
 
 ```bash
+signet publish
+
+
 flags:
 
 -p --path           the relative path to the contract or API spec
@@ -110,25 +123,16 @@ publish:
   path: ./data_test/api-spec.json
   name: user_service
 ```
-
-#### Publishing a Consumer Contract (with explicit flags)
-
-```bash
-signet publish --path=./data_test/cons-prov.json --broker-url=http://localhost:3000 --type=consumer
-```
-
-#### Publish a Provider Specification (with explicit flags)
-
-```bash
-signet publish --path=./data_test/api-spec.yaml --broker-url=http://localhost:3000 --type=provider --name=example-provider
-```
-
+&nbsp;  
 ## `signet test`
 - The `test` command determines if a provider service correctly implements an API spec. First, it fetches the latest API spec from the Signet broker. Then, it leverages an open source tool (dredd) to parse the API spec, generate mock requests and expected responses, and execute those interactions against the provider service. If the tests are successful, `test` notifies the Signet broker that this version of the provider service is verified -- it is proven to implement the API spec through testing. If any tests fail, an analysis of the failing tests is logged.
 
 - Before running `test`, the provider service must be running, and an API spec for that service must be published to the Signet broker.
 
 ```bash
+signet test
+
+
 flags:
 
 -n --name           the name of the provider service
@@ -152,17 +156,15 @@ test:
   name: user_service
   provider-url: http://localhost:3002
 ```
-
-#### Test a provider service against an API spec (with explicit flags)
-```bash
-signet test --broker-url=http://localhost:3000 --provider-url=http://localhost:3002 --name=example-provider --version=version1 --branch
-```
-
+&nbsp;  
 ## `signet register-env`
 
 - The `register-env` command informs the Signet broker about a new deployment environment. 
 
 ```bash
+signet register-env
+
+
 flags:
 
 -e --environment    the name of the deployment environment being registered (ex. production)
@@ -178,17 +180,15 @@ broker-url: http://localhost:3000
 register-env:
   environment: production
 ```
-
-#### Register a deployment environment (with explicit flags)
-```bash
-signet register-env --broker-url=http://localhost:3000 --environment=production
-```
-
+&nbsp;  
 ## `signet update-deployment`
 
 - The `update-deployment` command informs the Signet broker of which service versions are currently deployed in an environment. If broker does not already know about the `--environment`, it will create it.
 
 ```bash
+signet update-deployment
+
+
 flags:
 
 -n --name           the name of the service
@@ -211,12 +211,7 @@ update-deployment:
   name: user_service
   environment: production
 ```
-
-#### Notify the Signet broker of a deployment (with explicit flags)
-```bash
-signet update-deployment --broker-url=http://localhost:3000 --name=example-provider --version=version1 --environment=production
-```
-
+&nbsp;  
 ## `signet deploy-guard`
 - The `deploy-guard` command checks whether a service version can be safely deployed to an environment without introducing any breakages with other services in that environemnt. The `deploy-guard` command will fail (with an exit code of 1) if ANY of the following conditions are NOT met: 
 
@@ -227,6 +222,9 @@ signet update-deployment --broker-url=http://localhost:3000 --name=example-provi
 - If any of these are not true, the service version cannot be safely deployed to the environemnt, because doing so would either break the service or break one of its consumers. `deploy-guard` allows a CI/CD pipeline to automatically gate a deployment if it will lead to unintended breakages.
 	
 ```bash
+signet deploy-guard
+
+
 flags:
 
 -n --name           the name of the service
@@ -245,8 +243,4 @@ broker-url: http://localhost:3000
 
 deploy-guard:
   name: user_service
-```
-#### Check if it is safe to deploy a new version of a service (with explicit flags)
-```bash
-signet deploy-guard --broker-url=http://localhost:3000 --name=example-provider --version=version1 --environment=production
 ```
