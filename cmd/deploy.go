@@ -24,22 +24,28 @@ var deployCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
+
+		cfg, err := config.LoadDefaultConfig(context.TODO())
+		if err != nil {
+			return errors.New("unable to load SDK config - have you configured your aws cli with `aws configure sso`? Have you logged in with `aws login sso`?" + err.Error())
+		}
 		
 		csInput := &cloudformation.CreateStackInput{
 			StackName: aws.String(stackName),
 			TemplateBody: aws.String(template),
 			Capabilities: []types.Capability{"CAPABILITY_IAM"},
+			Parameters: []types.Parameter{
+				{
+					ParameterKey: aws.String("Region"),
+					ParameterValue: aws.String(cfg.Region),
+				},
+			},
 		}
 
-		cfg, err := config.LoadDefaultConfig(context.TODO())
-    if err != nil {
-			return errors.New("unable to load SDK config - have you configured your aws cli with `aws configure`? " + err.Error())
-    }
-		
 		cfClient := cloudformation.NewFromConfig(cfg)
 		_, err = cfClient.CreateStack(context.TODO(), csInput)
 		if err != nil {
-			return errors.New("unable to create CloudFormation stack - have you configured your aws cli with `aws configure`?: " + err.Error())
+			return errors.New("unable to create CloudFormation stack - try checking your CloudFormation Events log for details about the failure: " + err.Error())
 		}
 
 		fmt.Println(colorGreen + "Deploying" + colorReset + " - deploying the Signet broker to a new ECS Fargate cluster, this will take a few minutes...")
@@ -81,7 +87,7 @@ func waitForDeploymentDone(cfClient *cloudformation.Client) error {
 	name := stackName
 	dsInput := &cloudformation.DescribeStacksInput{StackName: &name}
 	if err := waiter.Wait(context.TODO(), dsInput, waitDuration); err != nil { // changed this from WaitForOutput before committing - untested
-		return errors.New("error while waiting for CloudFormation stack to be created - it is likely that Signet CLI simply timed out. Check your AWS console for the status of the deployment: " + err.Error())
+		return errors.New("error while waiting for CloudFormation stack to be created - Check your AWS console for the status of the deployment: " + err.Error())
 	}
 
 	return nil
