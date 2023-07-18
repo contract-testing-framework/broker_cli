@@ -29,9 +29,9 @@ any-signet-command:
 &nbsp;  
 ## `signet deploy`
 
-- The `deploy` command automatically deploys the Signet broker to a new ECS Fargate cluster in the user's AWS virtual private cloud. It uses a CloudFormation template and the AWS golang SDK to pull the Signet broker's docker images from DockerHub and provision the ECS Fargate cluster behind an Elastic Load Balancer. 
+- The `deploy` command deploys the Signet broker to a new ECS Fargate cluster on AWS. Using the golang SDK and a CloudFormation template, `deploy` provisions all of the necessary AWS infrastructure for self-hosting the Signet framework. When the broker is successfully deployed, the command outputs the public URL for the load balancer serving as the entrypoint to the application. 
 
-- `deploy` requires AWS IAM credentials to be configured in any of the default ways recommended by the AWS CLI. If you don't have this already setup, run `aws configure` and follow the prompts to configure local IAM credentials.
+- `deploy` requires the `aws cli` to be installed, and an IAM user with the `AdministratorAccess` permission set to be logged in as the `default` CLI profile.
 
 ```bash
 signet deploy
