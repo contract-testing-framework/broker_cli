@@ -6,8 +6,14 @@
 
 - requires node and npm
 
+Install:
 ```bash
 npm install -g signet-cli
+```
+
+Uninstall:
+```bash
+uninstall-signet-cli
 ```
 &nbsp;  
 # `signet` commands
