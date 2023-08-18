@@ -4,7 +4,7 @@
 
 # Installation
 
-- requires node and npm
+- requires Node and npm — the `proxy` and `test` commands depend on external tools with a Node.js runtime.
 
 Install:
 ```bash
